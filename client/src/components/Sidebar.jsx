@@ -1,37 +1,41 @@
-import { Map, ClipboardList } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React from 'react';
+import { Map, BatteryCharging } from 'lucide-react';
 
-export default function Sidebar() {
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    // The Sidebar needs a distinct dark background
+/**
+ * Sidebar Component
+ * Displays navigation icons and layout elements.
+ */
+const Sidebar = ({ currentPage, onNavigate }) => {
     return (
-        <div className="w-20 bg-[#141626] flex flex-col items-center py-6 space-y-6 shadow-xl z-10">
-            {/* GPS Page Button */}
+        // Left Sidebar (using the same styles as the original aside element)
+        <aside className="w-16 flex flex-col items-center py-6 space-y-8 bg-gray-950/50 shadow-2xl border-r border-slate-700/50">
+            <div className="w-8 h-8 rounded-lg bg-red-600/70"></div> {/* Placeholder Logo */}
+
+            {/* Map View Button */}
             <button
-                onClick={() => navigate("/gps")}
-                // Increased padding and roundedness for a 'pill' shape on active
-                className={`p-4 rounded-xl transition duration-200 
-                    ${location.pathname === "/gps"
-                        ? "bg-[#1f2140] text-white shadow-lg shadow-black/30"
-                        : "bg-transparent text-gray-400 hover:bg-[#1f2140]"
+                className={`p-3 rounded-xl shadow-xl transition ${currentPage === 'gps'
+                        ? 'bg-red-600/70 text-white'
+                        : 'bg-slate-700/50 text-white hover:bg-slate-600'
                     }`}
+                onClick={() => onNavigate('gps')}
+                aria-label="Map View"
             >
                 <Map size={24} />
             </button>
 
             {/* Status Page Button */}
             <button
-                onClick={() => navigate("/status")}
-                className={`p-4 rounded-xl transition duration-200 
-                    ${location.pathname === "/status"
-                        ? "bg-[#1f2140] text-white shadow-lg shadow-black/30"
-                        : "bg-transparent text-gray-400 hover:bg-[#1f2140]"
+                className={`p-3 rounded-xl shadow-xl transition ${currentPage === 'status'
+                        ? 'bg-red-600/70 text-white'
+                        : 'bg-slate-800 text-slate-400 hover:text-white'
                     }`}
+                onClick={() => onNavigate('status')}
+                aria-label="Status Dashboard"
             >
-                <ClipboardList size={24} />
+                <BatteryCharging size={24} />
             </button>
-        </div>
+        </aside>
     );
-}
+};
+
+export default Sidebar;

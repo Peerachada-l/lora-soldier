@@ -1,4 +1,10 @@
-body {
+/* stylelint-disable at-rule-no-unknown */
+/* Tailwind CSS Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* body {
     background-color: #0a0b1a;
     font-family: 'Inter', sans-serif;
-}
+} */

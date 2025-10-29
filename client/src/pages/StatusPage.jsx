@@ -1,36 +1,59 @@
-import Sidebar from "../components/Sidebar";
-import { Filter } from "lucide-react";
-import SoldierCard from "../components/SoldierCard";
+import React, { useState, useMemo } from 'react';
+import { Filter } from 'lucide-react';
+// FIX: Explicitly add .jsx extension for robust path resolution
+import SoldierCard from '../components/SoldierCard.jsx';
 
-export default function StatusPage() {
-    const soldiers = [
-        { id: 1, name: "Alpha", heartRate: 82, temp: 36.7, gyro: "Stable", status: "normal" },
-        { id: 2, name: "Bravo", heartRate: 89, temp: 37.1, gyro: "Stable", status: "normal" },
-        { id: 3, name: "Charlie", heartRate: 76, temp: 36.5, gyro: "Stable", status: "normal" },
-        { id: 4, name: "Delta", heartRate: 95, temp: 38.2, gyro: "Unstable", status: "critical" },
-        { id: 5, name: "Echo", heartRate: 87, temp: 36.8, gyro: "Stable", status: "normal" },
-        { id: 6, name: "Foxtrot", heartRate: 131, temp: 39.4, gyro: "Fallen", status: "critical" },
-    ];
+/**
+ * StatusPage Component
+ * Displays the main grid of soldier status cards with filtering.
+ */
+const StatusPage = ({ soldiers }) => {
+    const [filter, setFilter] = useState('All');
+
+    const filteredSoldiers = useMemo(() => {
+        if (filter === 'Critical') {
+            return soldiers.filter(s => s.status === 'Critical');
+        }
+        return soldiers;
+    }, [soldiers, filter]);
 
     return (
-        <div className="flex h-screen bg-[#0b0c1a] text-white">
-            {/* Sidebar */}
-            <Sidebar />
+        <main className="flex-1 overflow-auto p-4 md:p-8">
+            {/* Header/Filter Bar */}
+            <header className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-extrabold text-white">Unit Status Overview</h1>
 
-            {/* Main content */}
-            <div className="flex-1 p-10">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-2xl font-semibold">Status Overview</h1>
-                    <Filter className="text-gray-400 hover:text-white cursor-pointer" />
+                <div className="relative flex items-center space-x-4">
+                    <span className="text-slate-400 text-sm">{filter === 'Critical' ? 'Showing Critical' : 'Showing All'}</span>
+                    <Filter
+                        size={24}
+                        className="text-slate-400 hover:text-white cursor-pointer transition"
+                        onClick={() => setFilter(filter === 'All' ? 'Critical' : 'All')}
+                        aria-label="Toggle Critical Filter"
+                    />
+                    {filter !== 'All' && (
+                        <span className="absolute -top-1 right-0 h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>
+                    )}
                 </div>
+            </header>
 
-                {/* Grid of cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {soldiers.map((soldier) => (
+            {/* Status Grid */}
+            <div className="
+        grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3
+        max-w-6xl mx-auto
+      ">
+                {filteredSoldiers.length > 0 ? (
+                    filteredSoldiers.map(soldier => (
                         <SoldierCard key={soldier.id} soldier={soldier} />
-                    ))}
-                </div>
+                    ))
+                ) : (
+                    <div className="md:col-span-2 lg:col-span-3 text-center p-10 bg-slate-800/50 rounded-xl text-slate-400">
+                        No units currently matching filter criteria.
+                    </div>
+                )}
             </div>
-        </div>
+        </main>
     );
-}
+};
+
+export default StatusPage;
