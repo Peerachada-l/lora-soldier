@@ -1,28 +1,40 @@
 import React from 'react';
-import { MoreVertical, BatteryCharging, Shield, Heart } from 'lucide-react';
+import { MoreVertical, Heart, Thermometer, Shield, Activity, MapPin } from 'lucide-react';
 
 /**
  * SoldierCard Component
- * Displays the status and vitals of an individual soldier.
+ * Displays soldier vitals, unit, and helmet status.
  */
 const SoldierCard = ({ soldier }) => {
-    const { id, name, rank, status, health, battery } = soldier;
+    const {
+        soldier_id,
+        name,
+        rank,
+        unit,
+        helmet_id,
+        status,
+        heart_rate,
+        body_temp,
+        fall_detected,
+        latitude,
+        longitude,
+    } = soldier;
 
-    // Determine border color based on the status
-    const borderColor = status === 'Critical'
-        ? 'border-red-600 ring-red-600/30'
-        : 'border-green-500 ring-green-500/30';
-
-    const healthColor = health > 75 ? 'text-green-400' : health > 50 ? 'text-yellow-400' : 'text-red-400';
-    const batteryColor = battery > 75 ? 'text-green-400' : battery > 50 ? 'text-yellow-400' : 'text-red-400';
+    // 🟩 Determine border color
+    let borderColor;
+    if (heart_rate === 0) borderColor = 'border-red-600 ring-red-600/30';
+    else if (fall_detected) borderColor = 'border-yellow-400 ring-yellow-400/30';
+    else borderColor = 'border-green-500 ring-green-500/30';
 
     return (
-        <div className={`
-      relative p-4 md:p-6 bg-slate-900/70 border-2 rounded-xl shadow-lg transition duration-300
-      hover:shadow-red-500/10 hover:shadow-2xl
-      ${borderColor}
-    `}>
-            {/* Options Menu Icon */}
+        <div
+            className={`
+        relative p-4 md:p-6 bg-slate-900/70 border-2 rounded-xl shadow-lg transition duration-300
+        hover:shadow-2xl hover:shadow-red-500/10
+        ${borderColor}
+      `}
+        >
+            {/* Options */}
             <button
                 className="absolute top-3 right-3 text-slate-400 hover:text-white transition"
                 aria-label="Options"
@@ -31,9 +43,9 @@ const SoldierCard = ({ soldier }) => {
             </button>
 
             <div className="flex flex-col">
-                {/* Header/ID */}
-                <p className={`text-sm font-semibold mb-1 tracking-wider ${status === 'Critical' ? 'text-red-500' : 'text-green-400'}`}>
-                    UNIT ID: {id}
+                {/* Unit Number */}
+                <p className="text-sm font-semibold mb-1 tracking-wider text-blue-400">
+                    Unit {unit} — Helmet #{helmet_id}
                 </p>
 
                 {/* Name and Rank */}
@@ -42,27 +54,58 @@ const SoldierCard = ({ soldier }) => {
                     <span className="text-base font-normal text-slate-400 ml-2">({rank})</span>
                 </h2>
 
-                {/* Vitals/Metrics Grid */}
-                <div className="grid grid-cols-2 gap-4 text-sm font-medium">
-                    <div className="flex items-center space-x-2">
-                        <Heart size={20} className={healthColor} />
-                        <span className="text-slate-300">Health:</span>
-                        <span className={`font-bold ${healthColor}`}>{health}%</span>
-                    </div>
+                {/* Helmet Status */}
+                <div className="flex items-center mb-2 space-x-2">
+                    <Shield size={18} className="text-cyan-400" />
+                    <span className="text-slate-300">Helmet Status:</span>
+                    <span
+                        className={`font-bold ${status === 'critical'
+                                ? 'text-red-400'
+                                : status === 'warning'
+                                    ? 'text-yellow-400'
+                                    : 'text-green-400'
+                            }`}
+                    >
+                        {status ? status.toUpperCase() : 'UNKNOWN'}
+                    </span>
+                </div>
 
+                {/* Vitals Grid */}
+                <div className="grid grid-cols-1 gap-4 text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                        <BatteryCharging size={20} className={batteryColor} />
-                        <span className="text-slate-300">Battery:</span>
-                        <span className={`font-bold ${batteryColor}`}>{battery}%</span>
-                    </div>
-
-                    <div className="flex items-center space-x-2 col-span-2">
-                        <Shield size={20} className="text-blue-400" />
-                        <span className="text-slate-300">Mission Status:</span>
-                        <span className={`font-bold ${status === 'Critical' ? 'text-red-500' : 'text-green-400'}`}>
-                            {status.toUpperCase()}
+                        <Heart size={20} className={heart_rate === 0 ? 'text-red-400' : 'text-green-400'} />
+                        <span className="text-slate-300">Heart Rate:</span>
+                        <span className={`font-bold ${heart_rate === 0 ? 'text-red-400' : 'text-green-400'}`}>
+                            {heart_rate} bpm
                         </span>
                     </div>
+
+                    <div className="flex items-center space-x-2">
+                        <Thermometer size={20} className="text-orange-400" />
+                        <span className="text-slate-300">Body Temp:</span>
+                        <span className="font-bold text-orange-400">{body_temp}°C</span>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <Activity size={20} className={fall_detected ? 'text-yellow-400' : 'text-green-400'} />
+                        <span className="text-slate-300">Fall Detection:</span>
+                        <span
+                            className={`font-bold ${fall_detected ? 'text-yellow-400' : 'text-green-400'
+                                }`}
+                        >
+                            {fall_detected ? 'FALL DETECTED' : 'Stable'}
+                        </span>
+                    </div>
+
+                    {latitude && longitude && (
+                        <div className="flex items-center space-x-2">
+                            <MapPin size={20} className="text-purple-400" />
+                            <span className="text-slate-300">Location:</span>
+                            <span className="text-slate-400 text-xs">
+                                {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
