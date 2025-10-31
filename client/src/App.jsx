@@ -91,18 +91,30 @@ const initialSoldiers = [
  * Handles the main layout, state management, and simple routing.
  */
 const App = () => {
-  const [currentPage, setCurrentPage] = useState('status');
+  const [currentPage, setCurrentPage] = React.useState('status');
+  const [filterSoldierId, setFilterSoldierId] = React.useState(null);
 
   const handleNavigate = (page) => {
     setCurrentPage(page);
+    if (page !== 'status') setFilterSoldierId(null);
   };
+
+  const handleSelectSoldier = (soldierId) => {
+    setFilterSoldierId(soldierId);
+    setCurrentPage('status');
+  };
+
+  const filteredSoldiers =
+    filterSoldierId != null
+      ? initialSoldiers.filter((s) => s.soldier_id === filterSoldierId)
+      : initialSoldiers;
 
   const renderPage = () => {
     switch (currentPage) {
       case 'status':
-        return <StatusPage soldiers={initialSoldiers} />;
+        return <StatusPage soldiers={filteredSoldiers} />;
       case 'gps':
-        return <GPSPage soldiers={initialSoldiers} />;
+        return <GPSPage soldiers={initialSoldiers} onSelectSoldier={handleSelectSoldier} />;
       default:
         return <StatusPage soldiers={initialSoldiers} />;
     }
