@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import StatusPage from './pages/StatusPage.jsx';
 import GPSPage from './pages/GPSPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
 // --- MOCK DATA ---
-// Matches your actual DB schema: soldiers, helmets, sensor_data, location_data
 const initialSoldiers = [
   {
     soldier_id: 1,
@@ -29,8 +29,8 @@ const initialSoldiers = [
     heart_rate: 91,
     body_temp: 37.1,
     fall_detected: false,
-    latitude: 13.7580,
-    longitude: 100.5030,
+    latitude: 13.758,
+    longitude: 100.503,
   },
   {
     soldier_id: 3,
@@ -82,16 +82,15 @@ const initialSoldiers = [
     body_temp: 36.8,
     fall_detected: false,
     latitude: 13.7601,
-    longitude: 100.5090,
+    longitude: 100.509,
   },
 ];
 
 /**
  * Main App Component
- * Handles the main layout, state management, and simple routing.
  */
 const App = () => {
-  const [currentPage, setCurrentPage] = React.useState('status');
+  const [currentPage, setCurrentPage] = React.useState('dashboard'); // Default page
   const [filterSoldierId, setFilterSoldierId] = React.useState(null);
 
   const handleNavigate = (page) => {
@@ -111,12 +110,14 @@ const App = () => {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'dashboard':
+        return <DashboardPage soldiers={initialSoldiers} />;
       case 'status':
         return <StatusPage soldiers={filteredSoldiers} />;
       case 'gps':
         return <GPSPage soldiers={initialSoldiers} onSelectSoldier={handleSelectSoldier} />;
       default:
-        return <StatusPage soldiers={initialSoldiers} />;
+        return <DashboardPage soldiers={initialSoldiers} />;
     }
   };
 
