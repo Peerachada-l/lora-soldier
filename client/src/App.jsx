@@ -86,13 +86,12 @@ const initialSoldiers = [
   },
 ];
 
-/**
- * Main App Component
- */
 const App = () => {
-  const [currentPage, setCurrentPage] = React.useState('dashboard'); // Default page
+  const [currentPage, setCurrentPage] = React.useState('dashboard'); // default page
+  const [soldiers, setSoldiers] = React.useState(initialSoldiers);
   const [filterSoldierId, setFilterSoldierId] = React.useState(null);
 
+  // --- Navigation handlers ---
   const handleNavigate = (page) => {
     setCurrentPage(page);
     if (page !== 'status') setFilterSoldierId(null);
@@ -103,21 +102,29 @@ const App = () => {
     setCurrentPage('status');
   };
 
+  // --- Add soldier handler ---
+  const handleAddSoldier = (newSoldier) => {
+    const nextId = soldiers.length ? Math.max(...soldiers.map(s => s.soldier_id)) + 1 : 1;
+    setSoldiers([...soldiers, { soldier_id: nextId, ...newSoldier }]);
+  };
+
+  // --- Determine filtered soldiers ---
   const filteredSoldiers =
     filterSoldierId != null
-      ? initialSoldiers.filter((s) => s.soldier_id === filterSoldierId)
-      : initialSoldiers;
+      ? soldiers.filter(s => s.soldier_id === filterSoldierId)
+      : soldiers;
 
+  // --- Render the current page ---
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <DashboardPage soldiers={initialSoldiers} />;
+        return <DashboardPage soldiers={soldiers} />;
       case 'status':
-        return <StatusPage soldiers={filteredSoldiers} />;
+        return <StatusPage soldiers={filteredSoldiers} onAddSoldier={handleAddSoldier} />;
       case 'gps':
-        return <GPSPage soldiers={initialSoldiers} onSelectSoldier={handleSelectSoldier} />;
+        return <GPSPage soldiers={soldiers} onSelectSoldier={handleSelectSoldier} />;
       default:
-        return <DashboardPage soldiers={initialSoldiers} />;
+        return <DashboardPage soldiers={soldiers} />;
     }
   };
 
