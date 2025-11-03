@@ -1,41 +1,66 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import React from 'react';
+import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 
-const icon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/854/854878.png",
-    iconSize: [32, 32],
-});
+const containerStyle = {
+    width: '100%',
+    height: '90vh',
+};
 
-export default function GPSPage() {
-    const soldiers = [
-        { id: 1, name: "Alpha", lat: 25.0, lon: 45.0 },
-        { id: 2, name: "Bravo", lat: 25.4, lon: 45.2 },
-        { id: 3, name: "Charlie", lat: 25.8, lon: 45.3 },
-    ];
+const center = { lat: 13.7563, lng: 100.5018 };
+
+const GPSPage = ({ soldiers, onSelectSoldier }) => {
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY, // <-- put your API key in .env
+    });
+
+    const [activeSoldier, setActiveSoldier] = React.useState(null);
+
+    // Decide marker color
+    const getMarkerIcon = (soldier) => {
+        if (soldier.heart_rate === 0) return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+        if (soldier.fall_detected) return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
+        return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+    };
+
+    if (!isLoaded) return <div>Loading Map...</div>;
 
     return (
-        <div className="relative h-full w-full flex items-center justify-center p-6 bg-[#0a0b1a]">
-            {/* Outer glow border */}
-            <div className="rounded-3xl p-[6px] bg-gradient-to-r from-purple-500 to-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.6)]">
-                {/* Map container */}
-                <div className="rounded-2xl overflow-hidden h-[80vh] w-[90vw] bg-[#0d1022]">
-                    <MapContainer
-                        center={[25.5, 45.5]}
-                        zoom={6}
-                        style={{ height: "100%", width: "100%" }}
-                    >
-                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                        {soldiers.map((s) => (
-                            <Marker key={s.id} position={[s.lat, s.lon]} icon={icon}>
-                                <Popup>
-                                    <strong>{s.name}</strong>
-                                </Popup>
-                            </Marker>
-                        ))}
-                    </MapContainer>
-                </div>
-            </div>
-        </div>
+        <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={14}>
+            {soldiers.map((soldier) => (
+                <Marker
+                    key={soldier.soldier_id}
+                    position={{ lat: soldier.latitude, lng: soldier.longitude }}
+                    icon={getMarkerIcon(soldier)}
+                    onClick={() => setActiveSoldier(soldier)}
+                />
+            ))}
+
+            {activeSoldier && (
+                <InfoWindow
+                    position={{ lat: activeSoldier.latitude, lng: activeSoldier.longitude }}
+                    onCloseClick={() => setActiveSoldier(null)}
+                >
+                    <div>
+                        <strong>{activeSoldier.name}</strong>
+                        <br />
+                        Unit: {activeSoldier.unit}
+                        <br />
+                        Status: {activeSoldier.status}
+                        <br />
+                        HR: {activeSoldier.heart_rate || 'N/A'}
+                        <br />
+                        <button
+                            className="mt-2 px-2 py-1 bg-blue-600 text-white rounded"
+                            onClick={() => onSelectSoldier(activeSoldier.soldier_id)}
+                        >
+                            View Status
+                        </button>
+                    </div>
+                </InfoWindow>
+            )}
+        </GoogleMap>
     );
-}
+};
+
+export default GPSPage;
