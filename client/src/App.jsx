@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import StatusPage from './pages/StatusPage.jsx';
 import GPSPage from './pages/GPSPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
 // --- MOCK DATA ---
-// Matches your actual DB schema: soldiers, helmets, sensor_data, location_data
 const initialSoldiers = [
   {
     soldier_id: 1,
@@ -29,8 +29,8 @@ const initialSoldiers = [
     heart_rate: 91,
     body_temp: 37.1,
     fall_detected: false,
-    latitude: 13.7580,
-    longitude: 100.5030,
+    latitude: 13.758,
+    longitude: 100.503,
   },
   {
     soldier_id: 3,
@@ -82,18 +82,16 @@ const initialSoldiers = [
     body_temp: 36.8,
     fall_detected: false,
     latitude: 13.7601,
-    longitude: 100.5090,
+    longitude: 100.509,
   },
 ];
 
-/**
- * Main App Component
- * Handles the main layout, state management, and simple routing.
- */
 const App = () => {
-  const [currentPage, setCurrentPage] = React.useState('status');
+  const [currentPage, setCurrentPage] = React.useState('dashboard'); // default page
+  const [soldiers, setSoldiers] = React.useState(initialSoldiers);
   const [filterSoldierId, setFilterSoldierId] = React.useState(null);
 
+  // --- Navigation handlers ---
   const handleNavigate = (page) => {
     setCurrentPage(page);
     if (page !== 'status') setFilterSoldierId(null);
@@ -104,19 +102,29 @@ const App = () => {
     setCurrentPage('status');
   };
 
+  // --- Add soldier handler ---
+  const handleAddSoldier = (newSoldier) => {
+    const nextId = soldiers.length ? Math.max(...soldiers.map(s => s.soldier_id)) + 1 : 1;
+    setSoldiers([...soldiers, { soldier_id: nextId, ...newSoldier }]);
+  };
+
+  // --- Determine filtered soldiers ---
   const filteredSoldiers =
     filterSoldierId != null
-      ? initialSoldiers.filter((s) => s.soldier_id === filterSoldierId)
-      : initialSoldiers;
+      ? soldiers.filter(s => s.soldier_id === filterSoldierId)
+      : soldiers;
 
+  // --- Render the current page ---
   const renderPage = () => {
     switch (currentPage) {
+      case 'dashboard':
+        return <DashboardPage soldiers={soldiers} />;
       case 'status':
-        return <StatusPage soldiers={filteredSoldiers} />;
+        return <StatusPage soldiers={filteredSoldiers} onAddSoldier={handleAddSoldier} />;
       case 'gps':
-        return <GPSPage soldiers={initialSoldiers} onSelectSoldier={handleSelectSoldier} />;
+        return <GPSPage soldiers={soldiers} onSelectSoldier={handleSelectSoldier} />;
       default:
-        return <StatusPage soldiers={initialSoldiers} />;
+        return <DashboardPage soldiers={soldiers} />;
     }
   };
 

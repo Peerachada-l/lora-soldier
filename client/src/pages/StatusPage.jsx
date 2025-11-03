@@ -114,12 +114,10 @@ const StatusPage = () => {
                         />
                     </div>
 
-                    {/* 🧭 Unit Filter */}
+                    {/* Unit Filter Dropdown */}
                     <div className="relative">
                         <button
-                            onClick={() =>
-                                setOpenDropdown(openDropdown === 'unit' ? null : 'unit')
-                            }
+                            onClick={() => setOpenDropdown(openDropdown === 'unit' ? null : 'unit')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${accentColor} hover:bg-slate-800 transition`}
                         >
                             <Filter size={18} />
@@ -128,7 +126,7 @@ const StatusPage = () => {
 
                         {openDropdown === 'unit' && (
                             <div className="absolute right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg w-40 z-20">
-                                {units.map((option) => (
+                                {units.map(option => (
                                     <div
                                         key={option}
                                         onClick={() => {
@@ -148,12 +146,10 @@ const StatusPage = () => {
                         )}
                     </div>
 
-                    {/* 🧢 Rank Filter */}
+                    {/* Rank Filter Dropdown */}
                     <div className="relative">
                         <button
-                            onClick={() =>
-                                setOpenDropdown(openDropdown === 'rank' ? null : 'rank')
-                            }
+                            onClick={() => setOpenDropdown(openDropdown === 'rank' ? null : 'rank')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${accentColor} hover:bg-slate-800 transition`}
                         >
                             <Filter size={18} />
@@ -162,7 +158,7 @@ const StatusPage = () => {
 
                         {openDropdown === 'rank' && (
                             <div className="absolute right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg w-40 z-20">
-                                {ranks.map((option) => (
+                                {ranks.map(option => (
                                     <div
                                         key={option}
                                         onClick={() => {
@@ -181,21 +177,38 @@ const StatusPage = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Create Soldier Button */}
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
+                    >
+                        <Plus size={18} />
+                        <span>Create Soldier</span>
+                    </button>
                 </div>
             </header>
 
-            {/* 🪖 Soldier Cards Grid */}
+            {/* Soldier Cards Grid */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
                 {filteredSoldiers.length > 0 ? (
-                    filteredSoldiers.map((soldier) => (
-                        <SoldierCard key={soldier.soldier_id} soldier={soldier} />
-                    ))
+                    filteredSoldiers.map(s => <SoldierCard key={s.soldier_id} soldier={s} />)
                 ) : (
                     <div className="md:col-span-2 lg:col-span-3 text-center p-10 bg-slate-800/50 rounded-xl text-slate-400">
                         No soldiers found in the database.
                     </div>
                 )}
             </div>
+
+            {/* Create Soldier Modal */}
+            {showModal && (
+                <CreateSoldierModal
+                    onClose={() => setShowModal(false)}
+                    onCreate={onAddSoldier}
+                    ranks={ranks}
+                    units={units}
+                />
+            )}
         </main>
     );
 };
