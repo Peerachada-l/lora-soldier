@@ -34,3 +34,9 @@ def get_soldier_helmet(soldier_id: int, db: Session = Depends(get_db)):
     """Get the helmet assigned to a soldier."""
     service = SoldierService(db)
     return service.get_soldier_helmet(soldier_id)
+
+@router.get("/detailed")
+def get_soldiers_with_details(db: Session = Depends(get_db)):
+    """Get all soldiers with helmet + latest sensor/location data."""
+    service = SoldierService(db)
+    return service.get_all_soldiers_with_details()

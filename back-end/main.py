@@ -1,4 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
 from routers import soldier, helmet, sensor, location
 from utils.websocket_manager import manager
@@ -6,6 +7,15 @@ from utils.websocket_manager import manager
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Soldier Monitoring System")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],  # Add this
+)
 
 # Register routers
 app.include_router(soldier.router)
