@@ -21,6 +21,10 @@ def get_soldiers(db: Session = Depends(get_db)):
     service = SoldierService(db)
     return service.get_all_soldiers()
 
+@router.get("/detailed")
+def get_soldiers_with_details(db: Session = Depends(get_db)):
+    return SoldierService(db).get_all_soldiers_with_details()
+
 
 @router.get("/{soldier_id}", response_model=SoldierSchema)
 def get_soldier(soldier_id: int, db: Session = Depends(get_db)):
@@ -35,8 +39,8 @@ def get_soldier_helmet(soldier_id: int, db: Session = Depends(get_db)):
     service = SoldierService(db)
     return service.get_soldier_helmet(soldier_id)
 
-@router.get("/detailed")
-def get_soldiers_with_details(db: Session = Depends(get_db)):
-    """Get all soldiers with helmet + latest sensor/location data."""
-    service = SoldierService(db)
-    return service.get_all_soldiers_with_details()
+# @router.get("/detailed")
+# def get_soldiers_with_details(db: Session = Depends(get_db)):
+#     """Get all soldiers with helmet + latest sensor/location data."""
+#     service = SoldierService(db)
+#     return service.get_all_soldiers_with_details()

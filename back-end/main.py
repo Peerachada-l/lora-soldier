@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
-from routers import soldier, helmet, sensor, location
+from routers import soldier, helmet, sensor, location, websocket
 from utils.websocket_manager import manager
 
 Base.metadata.create_all(bind=engine)
@@ -22,6 +22,7 @@ app.include_router(soldier.router)
 app.include_router(helmet.router)
 app.include_router(sensor.router)
 app.include_router(location.router)
+app.include_router(websocket.router)
 
 
 @app.get("/")

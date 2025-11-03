@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from models import LocationData
 from utils.websocket_manager import manager
+import json
 
 
 class LocationService:
@@ -9,7 +10,7 @@ class LocationService:
         self.db = db
 
     async def add_location(self, helmet_id: int, latitude: float, longitude: float):
-        """Insert new GPS coordinate."""
+        """Insert new GPS coordinate and broadcast via WebSocket."""
         db_location = LocationData(
             helmet_id=helmet_id,
             latitude=latitude,
@@ -21,7 +22,19 @@ class LocationService:
         self.db.commit()
         self.db.refresh(db_location)
 
-        await manager.broadcast(f"📍 Helmet {helmet_id} moved to ({latitude}, {longitude})")
+        # Broadcast JSON instead of plain string
+        payload = {
+            "helmet_id": helmet_id,
+            "latitude": latitude,
+            "longitude": longitude,
+            "heart_rate": getattr(db_location, "heart_rate", None),
+            "fall_detected": getattr(db_location, "fall_detected", False),
+            "name": getattr(db_location, "name", f"Helmet {helmet_id}"),
+            "unit": getattr(db_location, "unit", "Unknown"),
+            "status": getattr(db_location, "status", "Active")
+        }
+
+        await manager.broadcast(json.dumps(payload))
 
         return db_location
 

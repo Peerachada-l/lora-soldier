@@ -3,26 +3,130 @@ import { Filter, Plus, MoreVertical } from 'lucide-react';
 import HelmetConnectModal from '../components/HelmetConnectModal.jsx';
 import HelmetCreateModal from '../components/HelmetCreateModal.jsx';
 
-/**
- * HelmetPage Component
- * Displays all helmets with filtering and connection controls.
- */
-const HelmetPage = ({ helmets, soldiers, onAddHelmet, onConnectHelmet }) => {
+const API_BASE = 'http://localhost:8000';
+
+const HelmetPage = ({ soldiers }) => {
+    const [helmets, setHelmets] = useState([]);
     const [statusFilter, setStatusFilter] = useState('All');
     const [openDropdown, setOpenDropdown] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedHelmet, setSelectedHelmet] = useState(null);
 
-    // --- Filtered helmets ---
+    // --- Fetch helmets on mount ---
+    React.useEffect(() => {
+        fetchHelmets();
+    }, []);
+
+    const fetchHelmets = async () => {
+        try {
+            const res = await fetch(`${API_BASE}/helmets/`);
+            const data = await res.json();
+            setHelmets(data);
+        } catch (err) {
+            console.error('❌ Failed to load helmets:', err);
+        }
+    };
+
+    // --- Add Helmet ---
+    const handleAddHelmet = async (newHelmet) => {
+        try {
+            const res = await fetch(`${API_BASE}/helmets/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newHelmet.status }),
+            });
+            if (!res.ok) throw new Error('Failed to add helmet');
+            const added = await res.json();
+            setHelmets((prev) => [...prev, added]);
+        } catch (err) {
+            console.error('❌ Error adding helmet:', err);
+        }
+    };
+
+    // --- Remove Helmet ---
+    const handleRemoveHelmet = async (helmet_id) => {
+        try {
+            const res = await fetch(`${API_BASE}/helmets/${helmet_id}`, {
+                method: 'DELETE',
+            });
+            if (!res.ok) throw new Error('Failed to remove helmet');
+            setHelmets((prev) => prev.filter((h) => h.helmet_id !== helmet_id));
+        } catch (err) {
+            console.error('❌ Error removing helmet:', err);
+        }
+    };
+
+    // --- Assign / Unassign Helmet ---
+    const handleConnectHelmet = async (helmet_id, soldier_id) => {
+        try {
+            let url;
+
+            // Case 1: Unassign
+            if (!soldier_id) {
+                url = `${API_BASE}/helmets/${helmet_id}/unassign`;
+            } 
+            // Case 2: Reassign or Assign
+            else {
+                const currentHelmet = helmets.find((h) => h.helmet_id === helmet_id);
+
+                // Helmet is already assigned
+                if (currentHelmet?.assigned_soldier_id) {
+                    // If assigning to the same soldier, show warning and stop
+                    if (currentHelmet.assigned_soldier_id === soldier_id) {
+                        alert(
+                            `⚠️ Helmet #${helmet_id} is already assigned to Soldier #${soldier_id}.`
+                        );
+                        return;
+                    }
+
+                    // Helmet assigned to another soldier — confirm reassign
+                    if (
+                        !window.confirm(
+                            `⚠️ Helmet #${helmet_id} is currently assigned to Soldier #${currentHelmet.assigned_soldier_id}. Reassign to Soldier #${soldier_id}?`
+                        )
+                    ) {
+                        return;
+                    }
+
+                    url = `${API_BASE}/helmets/${helmet_id}/reassign/${soldier_id}`;
+                } else {
+                    // Helmet not assigned — use assign endpoint
+                    url = `${API_BASE}/helmets/${helmet_id}/assign/${soldier_id}`;
+                }
+            }
+
+            const res = await fetch(url, { method: 'PUT' });
+            if (!res.ok) {
+                const errMsg = await res.text();
+                throw new Error(errMsg);
+            }
+
+            const updated = await res.json();
+            console.log('✅ Helmet updated:', updated);
+
+            await fetchHelmets();
+        } catch (err) {
+            console.error('❌ Error connecting helmet:', err);
+            alert(`Error: ${err.message}`); // Show error alert
+        }
+    };
+
+
+
+    // --- Filtered & Sorted Helmets ---
     const filteredHelmets = useMemo(() => {
         let list = [...helmets];
+
+        // ✅ Sort by helmet_id ascending
+        list.sort((a, b) => a.helmet_id - b.helmet_id);
+
         if (statusFilter !== 'All') {
-            list = list.filter(h => h.status === statusFilter.toLowerCase());
+            list = list.filter((h) => h.status === statusFilter.toLowerCase());
         }
         return list;
     }, [helmets, statusFilter]);
 
-    const statuses = ['All', 'Active', 'Inactive', 'Damaged', 'Unassigned'];
+    const statuses = ['All', 'active', 'inactive', 'maintenance'];
 
     return (
         <main className="flex-1 overflow-auto p-4 md:p-8">
@@ -30,9 +134,8 @@ const HelmetPage = ({ helmets, soldiers, onAddHelmet, onConnectHelmet }) => {
             <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
                 <h1 className="text-3xl font-extrabold text-white">Helmet Management</h1>
 
-                {/* Filter + Add */}
                 <div className="flex gap-3">
-                    {/* Filter Button */}
+                    {/* Filter */}
                     <div className="relative">
                         <button
                             onClick={() => setOpenDropdown(!openDropdown)}
@@ -50,10 +153,11 @@ const HelmetPage = ({ helmets, soldiers, onAddHelmet, onConnectHelmet }) => {
                                             setStatusFilter(option);
                                             setOpenDropdown(false);
                                         }}
-                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${statusFilter === option
+                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${
+                                            statusFilter === option
                                                 ? 'bg-slate-700 text-blue-400 font-semibold'
                                                 : 'text-slate-300'
-                                            }`}
+                                        }`}
                                     >
                                         {option}
                                     </div>
@@ -62,7 +166,7 @@ const HelmetPage = ({ helmets, soldiers, onAddHelmet, onConnectHelmet }) => {
                         )}
                     </div>
 
-                    {/* Add Helmet Button */}
+                    {/* Add Helmet */}
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md transition"
@@ -86,21 +190,23 @@ const HelmetPage = ({ helmets, soldiers, onAddHelmet, onConnectHelmet }) => {
                     </thead>
                     <tbody>
                         {filteredHelmets.length > 0 ? (
-                            filteredHelmets.map((helmet) => (
+                            filteredHelmets.map((h) => (
                                 <tr
-                                    key={helmet.helmet_id}
+                                    key={h.helmet_id}
                                     className="border-t border-slate-700 hover:bg-slate-700/30 transition"
                                 >
-                                    <td className="px-6 py-4 font-semibold">{helmet.helmet_id}</td>
-                                    <td className="px-6 py-4 capitalize">
-                                        {helmet.status || 'unassigned'}
-                                    </td>
+                                    <td className="px-6 py-4 font-semibold">{h.helmet_id}</td>
+                                    <td className="px-6 py-4 capitalize">{h.status}</td>
                                     <td className="px-6 py-4">
-                                        {helmet.soldier_id ? `#${helmet.soldier_id}` : '—'}
+                                        {h.assigned_soldier_id ? (
+                                            <>#{h.assigned_soldier_id}</>
+                                        ) : (
+                                            '—'
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
-                                            onClick={() => setSelectedHelmet(helmet)}
+                                            onClick={() => setSelectedHelmet(h)}
                                             className="p-2 rounded-lg hover:bg-slate-600 transition"
                                         >
                                             <MoreVertical size={18} />
@@ -126,16 +232,16 @@ const HelmetPage = ({ helmets, soldiers, onAddHelmet, onConnectHelmet }) => {
             {showCreateModal && (
                 <HelmetCreateModal
                     onClose={() => setShowCreateModal(false)}
-                    onAdd={onAddHelmet}
+                    onAdd={handleAddHelmet}
                 />
             )}
 
             {selectedHelmet && (
                 <HelmetConnectModal
                     helmet={selectedHelmet}
-                    soldiers={soldiers}
                     onClose={() => setSelectedHelmet(null)}
-                    onConnect={onConnectHelmet}
+                    onConnect={handleConnectHelmet}
+                    onRemove={handleRemoveHelmet}
                 />
             )}
         </main>

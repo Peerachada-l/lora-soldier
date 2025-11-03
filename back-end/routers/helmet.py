@@ -29,3 +29,11 @@ async def assign_helmet(helmet_id: int, soldier_id: int, db: Session = Depends(g
 @router.put("/{helmet_id}/unassign")
 async def unassign_helmet(helmet_id: int, db: Session = Depends(get_db)):
     return await HelmetService(db).unassign_helmet(helmet_id)
+
+@router.delete("/{helmet_id}")
+async def remove_helmet(helmet_id: int, db: Session = Depends(get_db)):
+    return await HelmetService(db).remove_helmet(helmet_id)
+
+@router.put("/{helmet_id}/reassign/{soldier_id}")
+async def reassign_helmet(helmet_id: int, soldier_id: int, db: Session = Depends(get_db)):
+    return await HelmetService(db).reassign_helmet(helmet_id, soldier_id)

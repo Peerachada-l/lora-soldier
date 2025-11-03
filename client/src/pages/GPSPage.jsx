@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 
 const containerStyle = {
@@ -8,15 +8,41 @@ const containerStyle = {
 
 const center = { lat: 13.7563, lng: 100.5018 };
 
-const GPSPage = ({ soldiers, onSelectSoldier }) => {
+const GPSPage = ({ soldiers: initialSoldiers, onSelectSoldier }) => {
     const { isLoaded } = useJsApiLoader({
         id: 'google-map-script',
-        googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY, // <-- put your API key in .env
+        googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     });
 
-    const [activeSoldier, setActiveSoldier] = React.useState(null);
+    const [soldiers, setSoldiers] = useState(initialSoldiers || []);
+    const [activeSoldier, setActiveSoldier] = useState(null);
 
-    // Decide marker color
+    // WebSocket connection
+    useEffect(() => {
+        const ws = new WebSocket('ws://localhost:8000/ws/locations'); // adjust path to your backend WS
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const helmetId = data.helmet_id;
+
+            // Update or insert soldier
+            setSoldiers((prev) => {
+                const exists = prev.find((s) => s.soldier_id === helmetId);
+                if (exists) {
+                    return prev.map((s) =>
+                        s.soldier_id === helmetId
+                            ? { ...s, latitude: data.latitude, longitude: data.longitude }
+                            : s
+                    );
+                } else {
+                    return [...prev, data];
+                }
+            });
+        };
+
+        return () => ws.close();
+    }, []);
+
     const getMarkerIcon = (soldier) => {
         if (soldier.heart_rate === 0) return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
         if (soldier.fall_detected) return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
