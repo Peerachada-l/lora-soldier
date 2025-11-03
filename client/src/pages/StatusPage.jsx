@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Plus } from 'lucide-react';
 import SoldierCard from '../components/SoldierCard.jsx';
+import CreateSoldierModal from '../components/CreateSoldierModal.jsx';
 
-const StatusPage = () => {
+const StatusPage = ({onAddSoldier}) => {
     const [soldiers, setSoldiers] = useState([]);
     const [search, setSearch] = useState('');
     const [unitFilter, setUnitFilter] = useState('All Units');
     const [rankFilter, setRankFilter] = useState('All Ranks');
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     const API_BASE = 'http://localhost:8000';
 
@@ -69,6 +71,34 @@ const StatusPage = () => {
 
         fetchAllData();
     }, []);
+
+    const handleCreateSoldier = async (newSoldier) => {
+        try {
+            const res = await fetch('http://localhost:8000/soldiers/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSoldier),
+            });
+            if (!res.ok) throw new Error('Failed to create soldier');
+
+            const createdSoldier = await res.json();
+
+            // Option 1: Update local state immediately
+            setSoldiers(prev => [...prev, { 
+                ...createdSoldier, 
+                helmet: null, 
+                sensor: null, 
+                location: null 
+            }]);
+
+            // Option 2: Call parent callback (if needed)
+            if (onAddSoldier) onAddSoldier(createdSoldier);
+
+            setShowModal(false);
+        } catch (err) {
+            console.error('❌ Error creating soldier:', err);
+        }
+    };
 
     // 🔍 Filtering logic
     const filteredSoldiers = useMemo(() => {
@@ -204,7 +234,7 @@ const StatusPage = () => {
             {showModal && (
                 <CreateSoldierModal
                     onClose={() => setShowModal(false)}
-                    onCreate={onAddSoldier}
+                    onCreate={handleCreateSoldier}
                     ranks={ranks}
                     units={units}
                 />

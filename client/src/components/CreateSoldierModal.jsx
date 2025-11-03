@@ -23,16 +23,19 @@ const CreateSoldierModal = ({ onClose, onCreate, ranks, units }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onCreate({ ...newSoldier, soldier_id: Number(newSoldier.soldier_id) });
-        onClose();
+        const { name, rank, unit } = newSoldier;
+        if (!name || !rank || !unit) return;
+
+        onCreate({ name, rank, unit });  // <- call StatusPage handler
     };
+
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-slate-900 p-6 rounded-xl w-96 shadow-2xl">
                 <h2 className="text-2xl font-bold text-white mb-4">Create Soldier</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                    <input
+                    {/* <input
                         type="number"
                         name="soldier_id"
                         placeholder="Soldier ID"
@@ -40,7 +43,7 @@ const CreateSoldierModal = ({ onClose, onCreate, ranks, units }) => {
                         onChange={handleChange}
                         className="p-2 rounded-lg bg-slate-800 text-white border border-slate-700"
                         required
-                    />
+                    /> */}
                     <input
                         type="text"
                         name="name"
