@@ -37,3 +37,8 @@ async def remove_helmet(helmet_id: int, db: Session = Depends(get_db)):
 @router.put("/{helmet_id}/reassign/{soldier_id}")
 async def reassign_helmet(helmet_id: int, soldier_id: int, db: Session = Depends(get_db)):
     return await HelmetService(db).reassign_helmet(helmet_id, soldier_id)
+
+@router.put("/{helmet_id}/status")
+async def update_helmet_status(helmet_id: int, status: HelmetStatus, db: Session = Depends(get_db)):
+    """Change helmet operational status."""
+    return await HelmetService(db).update_status(helmet_id, status)

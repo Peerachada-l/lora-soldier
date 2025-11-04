@@ -50,9 +50,7 @@ const SoldierCard = ({ soldier }) => {
                 <div className="flex items-center mb-2 space-x-2">
                     <Shield size={18} className="text-cyan-400" />
                     <span className="text-slate-300">Helmet Status:</span>
-                    <span className={`font-bold ${status === 'critical' ? 'text-red-400' : status === 'warning' ? 'text-yellow-400' : 'text-green-400'}`}>
-                        {status.toUpperCase()}
-                    </span>
+                    <span className="font-bold text-slate-300">{status.toUpperCase()}</span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 text-sm font-medium">

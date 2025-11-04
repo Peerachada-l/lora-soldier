@@ -3,14 +3,16 @@ import { X } from 'lucide-react';
 
 const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
     const [soldierId, setSoldierId] = useState('');
+    const [newStatus, setNewStatus] = useState(helmet.status || 'inactive');
+    const API_BASE = 'http://localhost:8000';
 
+    // 🔹 Assign or Reassign helmet
     const handleAssign = () => {
         if (!soldierId) {
             alert('Please enter a Soldier ID to assign.');
             return;
         }
 
-        // If already assigned, confirm reassign
         if (helmet.assigned_soldier_id && helmet.assigned_soldier_id !== parseInt(soldierId)) {
             if (
                 !window.confirm(
@@ -25,6 +27,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
         onClose();
     };
 
+    // 🔹 Unassign helmet
     const handleUnassign = () => {
         if (!helmet.assigned_soldier_id) {
             alert('This helmet is not assigned to any soldier.');
@@ -36,10 +39,32 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
         }
     };
 
+    // 🔹 Remove helmet
     const handleRemove = () => {
         if (window.confirm('Are you sure you want to delete this helmet?')) {
             onRemove(helmet.helmet_id);
             onClose();
+        }
+    };
+
+    // 🔹 Change status
+    const handleChangeStatus = async () => {
+        try {
+            if (!window.confirm(`Change helmet #${helmet.helmet_id} status to '${newStatus}'?`)) return;
+
+            const res = await fetch(`${API_BASE}/helmets/${helmet.helmet_id}/status?status=${newStatus}`, {
+                method: 'PUT',
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText);
+            }
+
+            onClose();
+        } catch (err) {
+            console.error('❌ Error changing status:', err);
+            alert(`❌ Failed to change status: ${err.message}`);
         }
     };
 
@@ -66,14 +91,31 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
                     </p>
                     <p>
                         <strong>Assigned Soldier:</strong>{' '}
-                        {isAssigned ? (
-                            <>#{helmet.assigned_soldier_id}</>
-                        ) : (
-                            'None'
-                        )}
+                        {isAssigned ? <>#{helmet.assigned_soldier_id}</> : 'None'}
                     </p>
 
+                    {/* 🔽 Status Dropdown */}
                     <div className="mt-4">
+                        <label className="block text-sm mb-2">Change Helmet Status</label>
+                        <select
+                            value={newStatus}
+                            onChange={(e) => setNewStatus(e.target.value)}
+                            className="w-full p-2 rounded-lg bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                        <button
+                            onClick={handleChangeStatus}
+                            className="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition"
+                        >
+                            Change Status
+                        </button>
+                    </div>
+
+                    {/* 🔢 Assign/Reassign Soldier */}
+                    <div className="mt-6">
                         <label className="block text-sm mb-2">Assign to Soldier ID</label>
                         <input
                             type="number"
@@ -89,9 +131,8 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* 🔘 Action Buttons */}
                 <div className="flex flex-wrap justify-between gap-3 mt-6">
-                    {/* Assign / Reassign */}
                     <button
                         onClick={handleAssign}
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
@@ -99,7 +140,6 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
                         {isAssigned ? 'Reassign' : 'Assign'}
                     </button>
 
-                    {/* Unassign */}
                     <button
                         onClick={handleUnassign}
                         disabled={!isAssigned}
@@ -112,7 +152,6 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
                         Unassign
                     </button>
 
-                    {/* Delete Helmet */}
                     <button
                         onClick={handleRemove}
                         className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"

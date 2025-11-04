@@ -115,3 +115,18 @@ class HelmetService:
         self.db.delete(helmet)
         self.db.commit()
         return {"message": f"Helmet #{helmet_id} removed successfully"}
+
+    async def update_status(self, helmet_id: int, new_status: HelmetStatus):
+        """Update the operational status of a helmet (active/inactive/maintenance)."""
+        helmet = self.db.query(Helmet).filter(Helmet.helmet_id == helmet_id).first()
+
+        if not helmet:
+            raise HTTPException(status_code=404, detail="Helmet not found")
+
+        # Update status
+        helmet.status = new_status
+        self.db.commit()
+        self.db.refresh(helmet)
+
+        await manager.broadcast(f"⚙️ Helmet {helmet_id} status changed to '{new_status.value}'")
+        return {"message": f"Helmet {helmet_id} status updated to '{new_status.value}'", "helmet": helmet}
