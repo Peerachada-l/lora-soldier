@@ -40,7 +40,7 @@ class HelmetService:
         if helmet.assigned_soldier_id:
             raise HTTPException(status_code=400, detail="Helmet already assigned. Use reassign instead.")
 
-        # 🚫 Prevent assigning to a soldier who already has another helmet
+        # Prevent assigning to a soldier who already has another helmet
         existing_helmet = self.db.query(Helmet).filter(Helmet.assigned_soldier_id == soldier_id).first()
         if existing_helmet:
             raise HTTPException(
@@ -112,8 +112,11 @@ class HelmetService:
         helmet = self.db.query(Helmet).filter(Helmet.helmet_id == helmet_id).first()
         if not helmet:
             raise HTTPException(status_code=404, detail="Helmet not found")
+
         self.db.delete(helmet)
         self.db.commit()
+
+        await manager.broadcast(f"🗑️ Helmet {helmet_id} removed from the system")
         return {"message": f"Helmet #{helmet_id} removed successfully"}
 
     async def update_status(self, helmet_id: int, new_status: HelmetStatus):

@@ -108,3 +108,36 @@ class SoldierService:
             result.append(soldier_data)
 
         return result
+
+    async def edit_soldier(self, soldier_id: int, name: str = None, rank: str = None, unit: str = None):
+        """Edit soldier information."""
+        soldier = self.db.query(Soldier).filter(Soldier.soldier_id == soldier_id).first()
+        if not soldier:
+            raise HTTPException(status_code=404, detail="Soldier not found")
+
+        if name:
+            soldier.name = name
+        if rank:
+            soldier.rank = rank
+        if unit:
+            soldier.unit = unit
+
+        self.db.commit()
+        self.db.refresh(soldier)
+
+        await manager.broadcast(f"✏️ Soldier {soldier_id} updated: name={soldier.name}, rank={soldier.rank}, unit={soldier.unit}")
+
+        return soldier
+
+
+    async def remove_soldier(self, soldier_id: int):
+        """Remove a soldier record."""
+        soldier = self.db.query(Soldier).filter(Soldier.soldier_id == soldier_id).first()
+        if not soldier:
+            raise HTTPException(status_code=404, detail="Soldier not found")
+
+        self.db.delete(soldier)
+        self.db.commit()
+
+        await manager.broadcast(f"❌ Soldier {soldier_id} removed from database.")
+        return {"message": f"Soldier {soldier_id} deleted successfully"}

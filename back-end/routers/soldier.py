@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas import SoldierCreate, Soldier as SoldierSchema
@@ -44,3 +44,22 @@ def get_soldier_helmet(soldier_id: int, db: Session = Depends(get_db)):
 #     """Get all soldiers with helmet + latest sensor/location data."""
 #     service = SoldierService(db)
 #     return service.get_all_soldiers_with_details()
+
+@router.put("/{soldier_id}")
+async def edit_soldier(
+    soldier_id: int,
+    name: str = Body(None),
+    rank: str = Body(None),
+    unit: str = Body(None),
+    db: Session = Depends(get_db)
+):
+    """Edit soldier details."""
+    service = SoldierService(db)
+    return await service.edit_soldier(soldier_id, name, rank, unit)
+
+
+@router.delete("/{soldier_id}")
+async def remove_soldier(soldier_id: int, db: Session = Depends(get_db)):
+    """Delete soldier by ID."""
+    service = SoldierService(db)
+    return await service.remove_soldier(soldier_id)

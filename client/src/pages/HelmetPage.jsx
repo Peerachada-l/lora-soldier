@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Filter, Plus, MoreVertical } from 'lucide-react';
 import HelmetConnectModal from '../components/HelmetConnectModal.jsx';
 import HelmetCreateModal from '../components/HelmetCreateModal.jsx';
 
 const API_BASE = 'http://localhost:8000';
+const WS_URL = 'ws://localhost:8000/ws'; // WebSocket endpoint
 
 const HelmetPage = ({ soldiers }) => {
     const [helmets, setHelmets] = useState([]);
@@ -11,21 +12,42 @@ const HelmetPage = ({ soldiers }) => {
     const [openDropdown, setOpenDropdown] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedHelmet, setSelectedHelmet] = useState(null);
+    const wsRef = useRef(null);
 
-    // --- Fetch helmets on mount ---
-    React.useEffect(() => {
-        fetchHelmets();
-    }, []);
-
+    // --- Fetch helmets ---
     const fetchHelmets = async () => {
         try {
             const res = await fetch(`${API_BASE}/helmets/`);
+            if (!res.ok) throw new Error('Failed to fetch helmets');
             const data = await res.json();
             setHelmets(data);
         } catch (err) {
             console.error('❌ Failed to load helmets:', err);
         }
     };
+
+    // --- WebSocket Setup ---
+    useEffect(() => {
+        fetchHelmets(); // initial load
+        wsRef.current = new WebSocket(WS_URL);
+
+        wsRef.current.onopen = () => console.log('📡 WebSocket connected (HelmetPage)');
+        wsRef.current.onclose = () => console.log('🔌 WebSocket disconnected');
+        wsRef.current.onerror = (err) => console.error('⚠️ WebSocket error:', err);
+
+        wsRef.current.onmessage = (event) => {
+            console.log('📨 WebSocket message:', event.data);
+
+            // Reload helmets only if event mentions "helmet"
+            const msg = event.data.toLowerCase();
+            if (msg.includes('helmet')) {
+                console.log('🔁 Updating helmets (WebSocket event detected)');
+                fetchHelmets();
+            }
+        };
+
+        return () => wsRef.current?.close();
+    }, []);
 
     // --- Add Helmet ---
     const handleAddHelmet = async (newHelmet) => {
@@ -56,30 +78,20 @@ const HelmetPage = ({ soldiers }) => {
         }
     };
 
-    // --- Assign / Unassign Helmet ---
+    // --- Assign / Unassign / Reassign Helmet ---
     const handleConnectHelmet = async (helmet_id, soldier_id) => {
         try {
             let url;
 
-            // Case 1: Unassign
             if (!soldier_id) {
                 url = `${API_BASE}/helmets/${helmet_id}/unassign`;
-            } 
-            // Case 2: Reassign or Assign
-            else {
+            } else {
                 const currentHelmet = helmets.find((h) => h.helmet_id === helmet_id);
-
-                // Helmet is already assigned
                 if (currentHelmet?.assigned_soldier_id) {
-                    // If assigning to the same soldier, show warning and stop
                     if (currentHelmet.assigned_soldier_id === soldier_id) {
-                        alert(
-                            `⚠️ Helmet #${helmet_id} is already assigned to Soldier #${soldier_id}.`
-                        );
+                        alert(`⚠️ Helmet #${helmet_id} is already assigned to Soldier #${soldier_id}.`);
                         return;
                     }
-
-                    // Helmet assigned to another soldier — confirm reassign
                     if (
                         !window.confirm(
                             `⚠️ Helmet #${helmet_id} is currently assigned to Soldier #${currentHelmet.assigned_soldier_id}. Reassign to Soldier #${soldier_id}?`
@@ -87,10 +99,8 @@ const HelmetPage = ({ soldiers }) => {
                     ) {
                         return;
                     }
-
                     url = `${API_BASE}/helmets/${helmet_id}/reassign/${soldier_id}`;
                 } else {
-                    // Helmet not assigned — use assign endpoint
                     url = `${API_BASE}/helmets/${helmet_id}/assign/${soldier_id}`;
                 }
             }
@@ -103,23 +113,17 @@ const HelmetPage = ({ soldiers }) => {
 
             const updated = await res.json();
             console.log('✅ Helmet updated:', updated);
-
             await fetchHelmets();
         } catch (err) {
             console.error('❌ Error connecting helmet:', err);
-            alert(`Error: ${err.message}`); // Show error alert
+            alert(`Error: ${err.message}`);
         }
     };
 
-
-
-    // --- Filtered & Sorted Helmets ---
+    // --- Filtered Helmets ---
     const filteredHelmets = useMemo(() => {
         let list = [...helmets];
-
-        // ✅ Sort by helmet_id ascending
         list.sort((a, b) => a.helmet_id - b.helmet_id);
-
         if (statusFilter !== 'All') {
             list = list.filter((h) => h.status === statusFilter.toLowerCase());
         }
@@ -198,11 +202,7 @@ const HelmetPage = ({ soldiers }) => {
                                     <td className="px-6 py-4 font-semibold">{h.helmet_id}</td>
                                     <td className="px-6 py-4 capitalize">{h.status}</td>
                                     <td className="px-6 py-4">
-                                        {h.assigned_soldier_id ? (
-                                            <>#{h.assigned_soldier_id}</>
-                                        ) : (
-                                            '—'
-                                        )}
+                                        {h.assigned_soldier_id ? <>#{h.assigned_soldier_id}</> : '—'}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
@@ -216,10 +216,7 @@ const HelmetPage = ({ soldiers }) => {
                             ))
                         ) : (
                             <tr>
-                                <td
-                                    colSpan="4"
-                                    className="text-center py-8 text-slate-500 italic"
-                                >
+                                <td colSpan="4" className="text-center py-8 text-slate-500 italic">
                                     No helmets match the current filter.
                                 </td>
                             </tr>
