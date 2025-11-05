@@ -2,14 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Plus } from 'lucide-react';
 import SoldierCard from '../components/SoldierCard.jsx';
 import CreateSoldierModal from '../components/CreateSoldierModal.jsx';
+import EditSoldierModal from '../components/EditSoldierModal.jsx';
 
-const StatusPage = ({onAddSoldier}) => {
+const StatusPage = ({ onAddSoldier }) => {
     const [soldiers, setSoldiers] = useState([]);
     const [search, setSearch] = useState('');
     const [unitFilter, setUnitFilter] = useState('All Units');
     const [rankFilter, setRankFilter] = useState('All Ranks');
     const [openDropdown, setOpenDropdown] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [selectedSoldier, setSelectedSoldier] = useState(null);
 
     const API_BASE = 'http://localhost:8000';
 
@@ -17,35 +19,23 @@ const StatusPage = ({onAddSoldier}) => {
     useEffect(() => {
         const fetchAllData = async () => {
             try {
-                // 1️⃣ Get all soldiers
                 const res = await fetch(`${API_BASE}/soldiers/`);
                 const soldiersData = await res.json();
 
-                // 2️⃣ For each soldier, fetch helmet + latest sensor
                 const enriched = await Promise.all(
                     soldiersData.map(async (soldier) => {
                         try {
-                            // fetch assigned helmet
                             const helmetRes = await fetch(`${API_BASE}/soldiers/${soldier.soldier_id}/helmet`);
                             const helmetData = await helmetRes.json();
 
                             if (helmetData.helmet_id) {
-                                // fetch latest sensor data
                                 const sensorRes = await fetch(`${API_BASE}/sensors/${helmetData.helmet_id}`);
                                 const sensorData = await sensorRes.json();
-                                // console.log("sensor res" + sensorRes)
-                                // console.log(sensorData)
-
                                 const locationRes = await fetch(`${API_BASE}/locations/${helmetData.helmet_id}`);
                                 const locationData = await locationRes.json();
-                                // console.log("location res" + locationRes)
-                                // console.log(locationData)
 
-                                // take the latest reading (last item)
                                 const latestSensor = sensorData[sensorData.length - 1] || null;
                                 const latestLocation = locationData[locationData.length - 1] || null;
-                                console.log(latestSensor)
-                                console.log(latestLocation)
 
                                 return {
                                     ...soldier,
@@ -63,7 +53,6 @@ const StatusPage = ({onAddSoldier}) => {
                 );
 
                 setSoldiers(enriched);
-                console.log('✅ Soldiers with helmet/sensor:', enriched);
             } catch (err) {
                 console.error('❌ Failed to load soldiers:', err);
             }
@@ -72,9 +61,10 @@ const StatusPage = ({onAddSoldier}) => {
         fetchAllData();
     }, []);
 
+    // ✅ Create Soldier
     const handleCreateSoldier = async (newSoldier) => {
         try {
-            const res = await fetch('http://localhost:8000/soldiers/', {
+            const res = await fetch(`${API_BASE}/soldiers/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newSoldier),
@@ -82,21 +72,42 @@ const StatusPage = ({onAddSoldier}) => {
             if (!res.ok) throw new Error('Failed to create soldier');
 
             const createdSoldier = await res.json();
-
-            // Option 1: Update local state immediately
-            setSoldiers(prev => [...prev, { 
-                ...createdSoldier, 
-                helmet: null, 
-                sensor: null, 
-                location: null 
-            }]);
-
-            // Option 2: Call parent callback (if needed)
+            setSoldiers(prev => [...prev, { ...createdSoldier, helmet: null, sensor: null, location: null }]);
             if (onAddSoldier) onAddSoldier(createdSoldier);
-
-            setShowModal(false);
+            setShowCreateModal(false);
         } catch (err) {
             console.error('❌ Error creating soldier:', err);
+        }
+    };
+
+    // ✅ Edit Soldier Info
+    const handleEditSoldier = async (soldierId, updatedData) => {
+        try {
+            const res = await fetch(`${API_BASE}/soldiers/${soldierId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData),
+            });
+            if (!res.ok) throw new Error('Failed to update soldier');
+            const updated = await res.json();
+            setSoldiers(prev =>
+                prev.map(s => (s.soldier_id === soldierId ? { ...s, ...updated } : s))
+            );
+            setSelectedSoldier(null);
+        } catch (err) {
+            console.error('❌ Failed to update soldier:', err);
+        }
+    };
+
+    // ✅ Remove Soldier
+    const handleRemoveSoldier = async (soldierId) => {
+        try {
+            const res = await fetch(`${API_BASE}/soldiers/${soldierId}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Failed to remove soldier');
+            setSoldiers(prev => prev.filter(s => s.soldier_id !== soldierId));
+            setSelectedSoldier(null);
+        } catch (err) {
+            console.error('❌ Failed to remove soldier:', err);
         }
     };
 
@@ -122,8 +133,8 @@ const StatusPage = ({onAddSoldier}) => {
         unitFilter !== 'All Units'
             ? 'text-green-400 border-green-500'
             : rankFilter !== 'All Ranks'
-            ? 'text-purple-400 border-purple-500'
-            : 'text-slate-300 border-slate-600';
+                ? 'text-purple-400 border-purple-500'
+                : 'text-slate-300 border-slate-600';
 
     return (
         <main className="flex-1 overflow-auto p-4 md:p-8">
@@ -163,11 +174,10 @@ const StatusPage = ({onAddSoldier}) => {
                                             setUnitFilter(option);
                                             setOpenDropdown(null);
                                         }}
-                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${
-                                            unitFilter === option
+                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${unitFilter === option
                                                 ? 'bg-slate-700 text-blue-400 font-semibold'
                                                 : 'text-slate-300'
-                                        }`}
+                                            }`}
                                     >
                                         {option}
                                     </div>
@@ -195,11 +205,10 @@ const StatusPage = ({onAddSoldier}) => {
                                             setRankFilter(option);
                                             setOpenDropdown(null);
                                         }}
-                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${
-                                            rankFilter === option
+                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${rankFilter === option
                                                 ? 'bg-slate-700 text-blue-400 font-semibold'
                                                 : 'text-slate-300'
-                                        }`}
+                                            }`}
                                     >
                                         {option}
                                     </div>
@@ -210,7 +219,7 @@ const StatusPage = ({onAddSoldier}) => {
 
                     {/* Create Soldier Button */}
                     <button
-                        onClick={() => setShowModal(true)}
+                        onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
                     >
                         <Plus size={18} />
@@ -222,7 +231,13 @@ const StatusPage = ({onAddSoldier}) => {
             {/* Soldier Cards Grid */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
                 {filteredSoldiers.length > 0 ? (
-                    filteredSoldiers.map(s => <SoldierCard key={s.soldier_id} soldier={s} />)
+                    filteredSoldiers.map(s => (
+                        <SoldierCard
+                            key={s.soldier_id}
+                            soldier={s}
+                            onEdit={() => setSelectedSoldier(s)}
+                        />
+                    ))
                 ) : (
                     <div className="md:col-span-2 lg:col-span-3 text-center p-10 bg-slate-800/50 rounded-xl text-slate-400">
                         No soldiers found in the database.
@@ -230,13 +245,23 @@ const StatusPage = ({onAddSoldier}) => {
                 )}
             </div>
 
-            {/* Create Soldier Modal */}
-            {showModal && (
+            {/* Create Modal */}
+            {showCreateModal && (
                 <CreateSoldierModal
-                    onClose={() => setShowModal(false)}
+                    onClose={() => setShowCreateModal(false)}
                     onCreate={handleCreateSoldier}
                     ranks={ranks}
                     units={units}
+                />
+            )}
+
+            {/* Edit Modal */}
+            {selectedSoldier && (
+                <EditSoldierModal
+                    soldier={selectedSoldier}
+                    onClose={() => setSelectedSoldier(null)}
+                    onSave={handleEditSoldier}
+                    onRemove={handleRemoveSoldier}
                 />
             )}
         </main>

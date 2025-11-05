@@ -5,7 +5,7 @@ import { MoreVertical, Heart, Thermometer, Shield, Activity, MapPin } from 'luci
  * SoldierCard Component
  * Displays soldier vitals, unit, and helmet status.
  */
-const SoldierCard = ({ soldier }) => {
+const SoldierCard = ({ soldier, onEdit }) => {
     const {
         soldier_id,
         name,
@@ -16,7 +16,7 @@ const SoldierCard = ({ soldier }) => {
         location,
     } = soldier;
 
-    // Use optional chaining in case data is missing
+    // Safe optional chaining
     const helmetId = helmet?.helmet_id ?? 'N/A';
     const status = helmet?.status ?? 'UNKNOWN';
     const heart_rate = sensor?.heart_rate ?? 0;
@@ -25,19 +25,32 @@ const SoldierCard = ({ soldier }) => {
     const latitude = location?.latitude ?? null;
     const longitude = location?.longitude ?? null;
 
-    // Determine border color
+    // Border color logic
     let borderColor;
     if (heart_rate === 0) borderColor = 'border-red-600 ring-red-600/30';
     else if (fall_detected) borderColor = 'border-yellow-400 ring-yellow-400/30';
     else borderColor = 'border-green-500 ring-green-500/30';
 
     return (
-        <div className={`relative p-4 md:p-6 bg-slate-900/70 border-2 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl hover:shadow-red-500/10 ${borderColor}`}>
-            <button className="absolute top-3 right-3 text-slate-400 hover:text-white transition" aria-label="Options">
+        <div
+            className={`relative p-4 md:p-6 bg-slate-900/70 border-2 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl hover:shadow-red-500/10 ${borderColor}`}
+        >
+            {/* Edit button (top-right) */}
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (onEdit) onEdit(soldier);
+                }}
+                className="absolute top-3 right-3 text-slate-400 hover:text-white transition"
+                aria-label="Edit Soldier"
+            >
                 <MoreVertical size={20} />
             </button>
 
             <div className="flex flex-col">
+                <p className="text-sm font-semibold mb-1 tracking-wider text-blue-400">
+                    Soldier ID: {soldier_id}
+                </p>
                 <p className="text-sm font-semibold mb-1 tracking-wider text-blue-400">
                     Unit {unit} — Helmet #{helmetId}
                 </p>
