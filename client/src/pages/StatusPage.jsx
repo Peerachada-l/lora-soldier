@@ -252,7 +252,7 @@ const StatusPage = ({ onAddSoldier }) => {
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
                     >
                         <Plus size={18} />
-                        <span>Create Soldier</span>
+                        <span>Add Soldier</span>
                     </button>
                 </div>
             </header>
