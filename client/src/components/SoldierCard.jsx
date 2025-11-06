@@ -22,8 +22,8 @@ const SoldierCard = ({ soldier, onEdit }) => {
     const heart_rate = sensor?.heart_rate ?? 0;
     const body_temp = sensor?.body_temp ?? 0;
     const fall_detected = sensor?.fall_detected ?? false;
-    const latitude = location?.latitude ?? null;
-    const longitude = location?.longitude ?? null;
+    // const latitude = location?.latitude ?? null;
+    // const longitude = location?.longitude ?? null;
 
     // Border color logic
     let borderColor;
@@ -89,7 +89,7 @@ const SoldierCard = ({ soldier, onEdit }) => {
                         </span>
                     </div>
 
-                    {latitude !== null && longitude !== null && (
+                    {/* {latitude !== null && longitude !== null && (
                         <div className="flex items-center space-x-2">
                             <MapPin size={20} className="text-purple-400" />
                             <span className="text-slate-300">Location:</span>
@@ -97,7 +97,7 @@ const SoldierCard = ({ soldier, onEdit }) => {
                                 {latitude.toFixed(5)}, {longitude.toFixed(5)}
                             </span>
                         </div>
-                    )}
+                    )} */}
                 </div>
             </div>
         </div>

@@ -5,11 +5,11 @@ from utils.websocket_manager import manager
 router = APIRouter()
 
 @router.websocket("/ws/locations")
-async def websocket_locations(ws: WebSocket):
+async def websocket_endpoint(ws: WebSocket):
     await manager.connect(ws)
     try:
         while True:
-            data = await ws.receive_text()
+            await ws.receive_text()
     except Exception:
         pass
     finally:

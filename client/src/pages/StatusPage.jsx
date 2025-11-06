@@ -69,23 +69,54 @@ const StatusPage = ({ onAddSoldier }) => {
         fetchAllData();
     }, []);
 
-    /** 🌐 WebSocket real-time updates */
+    /** 🌐 WebSocket for real-time updates */
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8000/ws');
+        const socket = new WebSocket('ws://localhost:8000/ws/locations');
 
         socket.onopen = () => console.log('🟢 WebSocket connected');
-        socket.onmessage = (event) => {
+
+        socket.onmessage = async (event) => {
             console.log('📡 WS Message:', event.data);
 
-            if (
-                event.data.includes('Soldier added') ||
-                event.data.includes('updated') ||
-                event.data.includes('removed')
-            ) {
-                console.log('🔄 Refreshing soldier list...');
-                fetchAllData();
+            try {
+                const data = JSON.parse(event.data);
+
+                // ✅ Handle JSON-structured messages
+                if (data.type === 'soldier_added' || data.type === 'soldier_updated' || data.type === 'soldier_removed') {
+                    console.log('🔄 Refreshing soldiers due to soldier change...');
+                    fetchAllData();
+                } 
+                else if (data.type === 'sensor_update' && data.helmet_id) {
+                    console.log(`⚡ Sensor update for helmet ${data.helmet_id}`);
+
+                    // Fetch only updated sensor data
+                    const res = await fetch(`${API_BASE}/sensors/${data.helmet_id}`);
+                    const sensorData = await res.json();
+                    const latest = sensorData[sensorData.length - 1] || null;
+
+                    // Update affected soldier locally
+                    setSoldiers((prev) =>
+                        prev.map((s) =>
+                            s.helmet?.helmet_id === data.helmet_id
+                                ? { ...s, sensor: latest }
+                                : s
+                        )
+                    );
+                }
+            } catch {
+                // ✅ Fallback: handle plain text WebSocket messages
+                if (
+                    event.data.includes('Soldier added') ||
+                    event.data.includes('updated') ||
+                    event.data.includes('removed') ||
+                    event.data.includes('sensor')
+                ) {
+                    console.log('🔄 Refreshing soldiers (text message fallback)...');
+                    fetchAllData();
+                }
             }
         };
+
         socket.onclose = () => console.log('🔴 WebSocket disconnected');
 
         return () => socket.close();
@@ -142,7 +173,7 @@ const StatusPage = ({ onAddSoldier }) => {
         }
     };
 
-    /** 🔍 Filtered soldiers list */
+    /** 🔍 Filter soldiers list */
     const filteredSoldiers = useMemo(() => {
         let list = [...soldiers];
         if (unitFilter !== 'All Units') list = list.filter((s) => s.unit === unitFilter);
@@ -246,7 +277,7 @@ const StatusPage = ({ onAddSoldier }) => {
                         )}
                     </div>
 
-                    {/* Add Soldier Button */}
+                    {/* Add Soldier */}
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
@@ -274,7 +305,7 @@ const StatusPage = ({ onAddSoldier }) => {
                 )}
             </div>
 
-            {/* Create Modal */}
+            {/* Modals */}
             {showCreateModal && (
                 <CreateSoldierModal
                     onClose={() => setShowCreateModal(false)}
@@ -284,7 +315,6 @@ const StatusPage = ({ onAddSoldier }) => {
                 />
             )}
 
-            {/* Edit Modal */}
             {selectedSoldier && (
                 <EditSoldierModal
                     soldier={selectedSoldier}
