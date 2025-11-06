@@ -99,7 +99,7 @@ const StatusPage = ({ onAddSoldier }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newSoldier),
             });
-            if (!res.ok) throw new Error('Failed to create soldier');
+            if (!res.ok) throw new Error('Failed to add soldier');
             const createdSoldier = await res.json();
 
             setSoldiers((prev) => [...prev, createdSoldier]);
