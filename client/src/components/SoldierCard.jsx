@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreVertical, Heart, Thermometer, Shield, Activity, MapPin } from 'lucide-react';
+import { MoreVertical, Heart, Thermometer, Shield, Activity, MapPin, AlertTriangle } from 'lucide-react';
 
 /**
  * SoldierCard Component
@@ -82,7 +82,7 @@ const SoldierCard = ({ soldier, onEdit }) => {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                        <Activity size={20} className={fall_detected ? 'text-yellow-400' : 'text-green-400'} />
+                        <AlertTriangle size={20} className={fall_detected ? 'text-yellow-400' : 'text-green-400'} />
                         <span className="text-slate-300">Fall Detection:</span>
                         <span className={`font-bold ${fall_detected ? 'text-yellow-400' : 'text-green-400'}`}>
                             {fall_detected ? 'FALL DETECTED' : 'Stable'}
