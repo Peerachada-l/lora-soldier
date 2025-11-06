@@ -1,25 +1,27 @@
 # utils/websocket_manager.py
-from fastapi import WebSocket, WebSocketDisconnect
+from typing import List
+from fastapi import WebSocket
 
-class ConnectionManager:
+class WebSocketManager:
     def __init__(self):
-        self.active_connections: list[WebSocket] = []
+        self.active_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
-        """Accept a new WebSocket connection."""
         await websocket.accept()
         self.active_connections.append(websocket)
-        print(f"✅ New connection: {len(self.active_connections)} active")
+        print(f"🟢 WebSocket connected: {len(self.active_connections)} clients")
 
-    def disconnect(self, websocket: WebSocket):
-        """Remove a disconnected WebSocket."""
+    async def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        print(f"❌ Connection closed: {len(self.active_connections)} active")
+        print(f"🔴 WebSocket disconnected: {len(self.active_connections)} clients left")
 
     async def broadcast(self, message: str):
-        """Send a message to all connected clients."""
+        print(f"📢 Broadcasting message to {len(self.active_connections)} clients: {message}")
         for connection in self.active_connections:
-            await connection.send_text(message)
+            try:
+                await connection.send_text(message)
+            except Exception:
+                await self.disconnect(connection)
 
-manager = ConnectionManager()
+manager = WebSocketManager()

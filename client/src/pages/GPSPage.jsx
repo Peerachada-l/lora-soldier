@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Circle, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 
 const containerStyle = {
     width: '100%',
@@ -43,7 +43,7 @@ const GPSPage = ({ soldiers: initialSoldiers, onSelectSoldier }) => {
         return () => ws.close();
     }, []);
 
-    const getMarkerIcon = (soldier) => {
+    const getCircleIcon = (soldier) => {
         if (soldier.heart_rate === 0) return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
         if (soldier.fall_detected) return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
         return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
@@ -54,10 +54,10 @@ const GPSPage = ({ soldiers: initialSoldiers, onSelectSoldier }) => {
     return (
         <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={14}>
             {soldiers.map((soldier) => (
-                <Marker
+                <Circle
                     key={soldier.soldier_id}
                     position={{ lat: soldier.latitude, lng: soldier.longitude }}
-                    icon={getMarkerIcon(soldier)}
+                    icon={getCircleIcon(soldier)}
                     onClick={() => setActiveSoldier(soldier)}
                 />
             ))}
