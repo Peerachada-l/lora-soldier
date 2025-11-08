@@ -15,7 +15,7 @@
 MAX30105 particleSensor;
 Adafruit_MPU6050 mpu;
 
-const int helmetID = 1;
+const int helmetID = 3;
 int counter = 0;
 const byte RATE_SIZE = 4;
 byte rates[RATE_SIZE];
