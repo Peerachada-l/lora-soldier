@@ -1,14 +1,14 @@
 import serial.tools.list_ports
 import serial
 import json
-import psycopg2
+#import psycopg2
 from dotenv import load_dotenv
 import requests
 import os
 
 load_dotenv()
 
-url = "http://localhost:8000/sensors/"
+url = "http://localhost:8000"
 
 ports = serial.tools.list_ports.comports()
 port = None
@@ -44,11 +44,16 @@ while True:
         data = json.loads(json_str)
         payload = {
             "heart_rate": data["AvgBPM"],
-            "body_temp": data["TemperatureC"],
+            "body_temp": data["TempC"],
             "fall_detected": False
         }
         print(data)
-        requests.post(url+str(data['HelmetID']), json=payload)
+        #requests.post(url+"/sensors/"+str(data['ID']), json=payload)
+        payload = {
+            "latitude": data["Lat"],
+            "longitude": data["Lng"]
+        }
+        requests.post(url+"/locations/"+str(data['ID']), json=payload)
         #print(f"HelmetID:{type(data['HelmetID'])}, AvgBPM:{type(data['AvgBPM'])}, TemperatureC:{type(data['TemperatureC'])}")
         #sql = "INSERT INTO sensor_data (heart_rate, body_temp, helmet_id) VALUES (%s, %s, %s)"
         #cur.execute(sql, (data["AvgBPM"], data["TemperatureC"], data["HelmetID"]))
