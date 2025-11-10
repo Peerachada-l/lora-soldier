@@ -22,9 +22,9 @@ class SensorService:
         self.db.commit()
         self.db.refresh(db_sensor_data)
 
-        await manager.broadcast(
-            f"📡 Helmet {helmet_id} | HR={heart_rate} | Temp={body_temp} | Fall={fall_detected}"
-        )
+        # await manager.broadcast(
+        #     f"📡 Helmet {helmet_id} | HR={heart_rate} | Temp={body_temp} | Fall={fall_detected}"
+        # )
         return db_sensor_data
 
     def get_all_sensor_data(self):
