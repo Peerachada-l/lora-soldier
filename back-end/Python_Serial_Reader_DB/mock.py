@@ -1,0 +1,2 @@
+for i in range(3):
+    print('{"HelmetID": 3, "IR": 489, "BPM" 50.89, "AvgBPM": 50, "TemperatureC": 33.0, "Counter":5, "AccelerationX": -1.46, "AccelerationY": -0.2, "AccelerationZ": 8.92, "RotationX": -0.03, "RotationY": 0.03, "RotationZ": -0.02, "Temperature": 30.31, "Lat": 13.912300, "Long": 100.501234}')
