@@ -1,3 +1,4 @@
+from math import sqrt
 import serial.tools.list_ports
 import serial
 import json
@@ -30,8 +31,10 @@ ser = serial.Serial(port, 115200, timeout=1)
 
 # counter = 0
 # execute_interval = 1
+accelMag = 0
+fall_detected = False
 while True:
-    line = ser.readline().decode().strip()
+    line = ser.readline().decode("utf-8", errors="ignore").strip()
     if not line:
         continue
     start = line.find("{")
@@ -42,13 +45,27 @@ while True:
     json_str = line[start:end+1]
     try:
         data = json.loads(json_str)
+        ir = data["IR"]
+        heart_rate = data["AvgBPM"]
+        body_temp = data["TempC"]
+        accelX = data["AccelX"]
+        accelY = data["AccelY"]
+        accelZ = data["AccelZ"]
+        accelMag = sqrt(accelX*accelX + accelY*accelY + accelZ*accelZ) #length of 3D vector
+        print("accelMag: ", accelMag)
+        if accelMag > 10:
+            fall_detected = True
+        else:
+            fall_detected = False
+        if ir < 10000:
+            heart_rate = 0
         payload = {
-            "heart_rate": data["AvgBPM"],
-            "body_temp": data["TempC"],
-            "fall_detected": False
+            "heart_rate": heart_rate,
+            "body_temp": body_temp,
+            "fall_detected": fall_detected
         }
         print(data)
-        #requests.post(url+"/sensors/"+str(data['ID']), json=payload)
+        requests.post(url+"/sensors/"+str(data['ID']), json=payload)
         payload = {
             "latitude": data["Lat"],
             "longitude": data["Lng"]
