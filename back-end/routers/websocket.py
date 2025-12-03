@@ -9,7 +9,8 @@ async def websocket_endpoint(ws: WebSocket):
     await manager.connect(ws)
     try:
         while True:
-            await ws.receive_text()
+            data = await ws.receive_text()
+            print("Receievd: " + data)
     except Exception:
         pass
     finally:

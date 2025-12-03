@@ -1,10 +1,9 @@
-/* stylelint-disable at-rule-no-unknown */
-/* Tailwind CSS Directives */
+/* Keep Tailwind + Leaflet imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "leaflet/dist/leaflet.css";
 
 /* body {
-    background-color: #0a0b1a;
-    font-family: 'Inter', sans-serif;
+    @apply bg-[#0a0b1a] font-sans;
 } */
