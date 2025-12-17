@@ -1,17 +1,13 @@
 from sqlalchemy import (
     Column, Integer, String, Float, Boolean,
-    DateTime, ForeignKey, DECIMAL, Enum, BigInteger
+    DateTime, ForeignKey, Enum
 )
 from sqlalchemy.orm import relationship
 from database import Base
 import enum
 from datetime import datetime
 
-class HelmetStatus(enum.Enum):
-    active = "active"
-    inactive = "inactive"
-    maintenance = "maintenance"
-
+# Soldier Table
 class Soldier(Base):
     __tablename__ = "soldiers"
 
@@ -19,51 +15,41 @@ class Soldier(Base):
     name = Column(String(100), nullable=False)
     rank = Column(String(50))
     unit = Column(String(100))
+    helmet_id = Column(Integer, ForeignKey("helmets.helmet_id"), nullable=True)
+    helmet_worn = Column(Boolean, default=False)
+    timestamp = Column(DateTime, nullable=True)
 
-    # One-to-one relationship (a soldier has one helmet)
-    helmet = relationship(
-        "Helmet", back_populates="assigned_soldier", uselist=False
-    )
+    helmet = relationship("Helmet", back_populates="soldier")
+    sensor_data = relationship("SensorData", back_populates="soldier", cascade="all, delete-orphan")
 
 
 # Helmet Table
+
+class HelmetStatus(enum.Enum):
+    active = "active"
+    inactive = "inactive"
+    maintenance = "maintenance"
+
 class Helmet(Base):
     __tablename__ = "helmets"
 
     helmet_id = Column(Integer, primary_key=True, index=True)
-    status = Column(Enum(HelmetStatus), default=HelmetStatus.inactive, nullable=False)
-    assigned_soldier_id = Column(Integer, ForeignKey("soldiers.soldier_id"), nullable=True)
-
-    # Relationships
-    assigned_soldier = relationship("Soldier", back_populates="helmet")
-    sensors = relationship("SensorData", back_populates="helmet", cascade="all, delete-orphan")
-    locations = relationship("LocationData", back_populates="helmet", cascade="all, delete-orphan")
-
+    status = Column(Enum(HelmetStatus), default=HelmetStatus.inactive)
+    
+    soldier = relationship("Soldier", back_populates="helmet",  uselist=False)
 
 # Sensor Data Table
 class SensorData(Base):
     __tablename__ = "sensor_data"
 
-    sensor_id = Column(BigInteger, primary_key=True, index=True)
-    helmet_id = Column(Integer, ForeignKey("helmets.helmet_id", ondelete="CASCADE"), nullable=False)
+    sensor_id = Column(Integer, primary_key=True, index=True)
+    soldier_id = Column(Integer, ForeignKey("soldiers.soldier_id", ondelete="CASCADE"), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    heart_rate = Column(Integer)
-    body_temp = Column(Float)
+    heart_rate = Column(Integer, default=0)
+    body_temp = Column(Float, default=0)
     fall_detected = Column(Boolean, default=False)
 
-    # Relationship
-    helmet = relationship("Helmet", back_populates="sensors")
+    latitude = Column(Float)
+    longitude = Column(Float)
 
-
-# Location Data Table
-class LocationData(Base):
-    __tablename__ = "location_data"
-
-    location_id = Column(BigInteger, primary_key=True, index=True)
-    helmet_id = Column(Integer, ForeignKey("helmets.helmet_id", ondelete="CASCADE"), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-    latitude = Column(DECIMAL(10, 7))
-    longitude = Column(DECIMAL(10, 7))
-
-    # Relationship
-    helmet = relationship("Helmet", back_populates="locations")
+    soldier = relationship("Soldier", back_populates="sensor_data")

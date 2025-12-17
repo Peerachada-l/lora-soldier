@@ -14,31 +14,10 @@ async def add_helmet(status: HelmetStatus = HelmetStatus.inactive, db: Session =
 def get_helmets(db: Session = Depends(get_db)):
     return HelmetService(db).get_all_helmets()
 
-@router.get("/available")
-def get_available_helmets(db: Session = Depends(get_db)):
-    return HelmetService(db).get_available_helmets()
-
-@router.get("/unavailable")
-def get_unavailable_helmets(db: Session = Depends(get_db)):
-    return HelmetService(db).get_unavailable_helmets()
-
-@router.put("/{helmet_id}/assign/{soldier_id}")
-async def assign_helmet(helmet_id: int, soldier_id: int, db: Session = Depends(get_db)):
-    return await HelmetService(db).assign_helmet(helmet_id, soldier_id)
-
-@router.put("/{helmet_id}/unassign")
-async def unassign_helmet(helmet_id: int, db: Session = Depends(get_db)):
-    return await HelmetService(db).unassign_helmet(helmet_id)
+@router.put("/{helmet_id}/status")
+async def update_status(helmet_id: int, status: HelmetStatus, db: Session = Depends(get_db)):
+    return await HelmetService(db).update_status(helmet_id, status)
 
 @router.delete("/{helmet_id}")
-async def remove_helmet(helmet_id: int, db: Session = Depends(get_db)):
+async def delete_helmet(helmet_id: int, db: Session = Depends(get_db)):
     return await HelmetService(db).remove_helmet(helmet_id)
-
-@router.put("/{helmet_id}/reassign/{soldier_id}")
-async def reassign_helmet(helmet_id: int, soldier_id: int, db: Session = Depends(get_db)):
-    return await HelmetService(db).reassign_helmet(helmet_id, soldier_id)
-
-@router.put("/{helmet_id}/status")
-async def update_helmet_status(helmet_id: int, status: HelmetStatus, db: Session = Depends(get_db)):
-    """Change helmet operational status."""
-    return await HelmetService(db).update_status(helmet_id, status)

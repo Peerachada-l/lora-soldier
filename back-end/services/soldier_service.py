@@ -1,143 +1,190 @@
 # services/soldier_service.py
-from sqlalchemy.orm import Session
-from models import Soldier, Helmet, SensorData, LocationData
+from sqlalchemy.orm import Session, joinedload
+from models import Soldier, SensorData, Helmet
 from fastapi import HTTPException
 from utils.websocket_manager import manager
 from sqlalchemy import desc
+from datetime import datetime
 
 
 class SoldierService:
     def __init__(self, db: Session):
         self.db = db
 
+    # CREATE
     async def create_soldier(self, name: str, rank: str, unit: str):
-        """Create a new soldier record."""
-        db_soldier = Soldier(name=name, rank=rank, unit=unit)
-        self.db.add(db_soldier)
-        self.db.commit()
-        self.db.refresh(db_soldier)
-
-        # Broadcast WebSocket event
-        await manager.broadcast(
-            f"🪖 Soldier added: name={name} | rank={rank} | unit={unit}"
+        soldier = Soldier(
+            name=name,
+            rank=rank,
+            unit=unit,
+            helmet_worn=False
         )
+        self.db.add(soldier)
+        self.db.commit()
+        self.db.refresh(soldier)
 
-        return db_soldier
+        await manager.broadcast(
+            f"🪖 Soldier added: {name} | {rank} | {unit}"
+        )
+        return soldier
 
+    # READ
     def get_all_soldiers(self):
-        """Return all soldiers."""
         return self.db.query(Soldier).all()
 
     def get_soldier_by_id(self, soldier_id: int):
-        """Return a single soldier by ID."""
-        soldier = (
-            self.db.query(Soldier)
-            .filter(Soldier.soldier_id == soldier_id)
-            .first()
-        )
+        soldier = self.db.query(Soldier).filter(
+            Soldier.soldier_id == soldier_id
+        ).first()
+
         if not soldier:
             raise HTTPException(status_code=404, detail="Soldier not found")
         return soldier
 
     def get_soldier_helmet(self, soldier_id: int):
-        """Return helmet assigned to soldier."""
-        soldier = (
-            self.db.query(Soldier)
-            .filter(Soldier.soldier_id == soldier_id)
-            .first()
-        )
-        if not soldier:
-            raise HTTPException(status_code=404, detail="Soldier not found")
+        soldier = self.get_soldier_by_id(soldier_id)
 
-        if not soldier.helmet:
-            return {"message": "This soldier does not have a helmet assigned."}
-
-        return soldier.helmet
-    
-    def get_all_soldiers_with_details(self):
-        """Return all soldiers with their assigned helmet, latest sensor + location data."""
-        soldiers = self.db.query(Soldier).all()
-        result = []
-
-        for soldier in soldiers:
-            soldier_data = {
-                "soldier_id": soldier.soldier_id,
-                "name": soldier.name,
-                "rank": soldier.rank,
-                "unit": soldier.unit,
-                "helmet_id": None,
-                "helmet_status": None,
-                "latest_sensor": None,
-                "latest_location": None
+        if not soldier.helmet or not soldier.helmet_worn:
+            return {
+                "soldier_id": soldier_id,
+                "helmet": None,
+                "helmet_worn": False,
+                "timestamp": None
             }
 
-            if soldier.helmet:
-                helmet = soldier.helmet
-                soldier_data["helmet_id"] = helmet.helmet_id
-                soldier_data["helmet_status"] = helmet.status.value
+        return {
+            "soldier_id": soldier.soldier_id,
+            "helmet_id": soldier.helmet.helmet_id,
+            "helmet_status": soldier.helmet.status.value,
+            "helmet_worn": soldier.helmet_worn,
+            "timestamp": soldier.timestamp
+        }
+    
+    # EDIT
+    async def edit_soldier(
+        self,
+        soldier_id: int,
+        name: str = None,
+        rank: str = None,
+        unit: str = None
+    ):
+        soldier = self.get_soldier_by_id(soldier_id)
 
-                # Get latest sensor data
-                latest_sensor = (
-                    self.db.query(SensorData)
-                    .filter(SensorData.helmet_id == helmet.helmet_id)
-                    .order_by(desc(SensorData.timestamp))
-                    .first()
-                )
-                if latest_sensor:
-                    soldier_data["latest_sensor"] = {
-                        "heart_rate": latest_sensor.heart_rate,
-                        "body_temp": latest_sensor.body_temp,
-                        "fall_detected": latest_sensor.fall_detected,
-                        "timestamp": latest_sensor.timestamp.isoformat()
-                    }
-
-                # Get latest location data
-                latest_location = (
-                    self.db.query(LocationData)
-                    .filter(LocationData.helmet_id == helmet.helmet_id)
-                    .order_by(desc(LocationData.timestamp))
-                    .first()
-                )
-                if latest_location:
-                    soldier_data["latest_location"] = {
-                        "latitude": float(latest_location.latitude),
-                        "longitude": float(latest_location.longitude),
-                        "timestamp": latest_location.timestamp.isoformat()
-                    }
-
-            result.append(soldier_data)
-
-        return result
-
-    async def edit_soldier(self, soldier_id: int, name: str = None, rank: str = None, unit: str = None):
-        """Edit soldier information."""
-        soldier = self.db.query(Soldier).filter(Soldier.soldier_id == soldier_id).first()
-        if not soldier:
-            raise HTTPException(status_code=404, detail="Soldier not found")
-
-        if name:
+        if name is not None:
             soldier.name = name
-        if rank:
+        if rank is not None:
             soldier.rank = rank
-        if unit:
+        if unit is not None:
             soldier.unit = unit
 
         self.db.commit()
         self.db.refresh(soldier)
 
-        await manager.broadcast(f"✏️ Soldier {soldier_id} updated: name={soldier.name}, rank={soldier.rank}, unit={soldier.unit}")
+        await manager.broadcast(f"✏️ Soldier {soldier_id} updated")
+        return soldier
+    
+    # HELMET ACTIONS
+    async def wear_helmet(self, soldier_id: int, helmet_id: int):
+        soldier = self.get_soldier_by_id(soldier_id)
+        helmet = self.db.query(Helmet).filter(
+            Helmet.helmet_id == helmet_id
+        ).first()
 
+        if not helmet:
+            raise HTTPException(status_code=404, detail="Helmet not found")
+
+        # Helmet already worn by another soldier
+        existing = self.db.query(Soldier).filter(
+            Soldier.helmet_id == helmet_id,
+            Soldier.helmet_worn == True
+        ).first()
+
+        if existing:
+            raise HTTPException(status_code=400, detail="Helmet already worn")
+
+        soldier.helmet_id = helmet_id
+        soldier.helmet_worn = True
+        soldier.timestamp = datetime.utcnow()
+
+        self.db.commit()
+
+        await manager.broadcast(
+            f"🪖 Soldier {soldier_id} wears Helmet {helmet_id}"
+        )
         return soldier
 
+    async def remove_helmet(self, soldier_id: int):
+        soldier = self.get_soldier_by_id(soldier_id)
 
+        if not soldier.helmet_worn:
+            return {"message": "Soldier is not wearing a helmet"}
+
+        soldier.helmet_id = None
+        soldier.helmet_worn = False
+        soldier.timestamp = datetime.utcnow()
+
+        self.db.commit()
+
+        await manager.broadcast(
+            f"Soldier {soldier_id} removed helmet"
+        )
+        return {"message": "Helmet removed successfully"}
+
+    # DELETE
     async def remove_soldier(self, soldier_id: int):
-        """Remove a soldier record."""
-        soldier = self.db.query(Soldier).filter(Soldier.soldier_id == soldier_id).first()
-        if not soldier:
-            raise HTTPException(status_code=404, detail="Soldier not found")
+        soldier = self.get_soldier_by_id(soldier_id)
 
         self.db.delete(soldier)
         self.db.commit()
 
-        await manager.broadcast(f"❌ Soldier {soldier_id} removed from database.")
-        return {"message": f"Soldier {soldier_id} deleted successfully"}
+        await manager.broadcast(f"Soldier {soldier_id} removed")
+        return {"message": f"Soldier {soldier_id} removed successfully"}
+
+    # DETAILED VIEW
+    def get_all_soldiers_with_details(self):
+        soldiers = (
+            self.db.query(Soldier)
+            .options(joinedload(Soldier.helmet))
+            .all()
+        )
+
+        result = []
+
+        for soldier in soldiers:
+            data = {
+                "soldier_id": soldier.soldier_id,
+                "name": soldier.name,
+                "rank": soldier.rank,
+                "unit": soldier.unit,
+                "helmet": None,
+                "latest_sensor": None
+            }
+
+            if soldier.helmet and soldier.helmet_worn:
+                data["helmet"] = {
+                    "helmet_id": soldier.helmet.helmet_id,
+                    "status": soldier.helmet.status.value,
+                    "helmet_worn": soldier.helmet_worn,
+                    "timestamp": soldier.timestamp
+                }
+
+            latest_sensor = (
+                self.db.query(SensorData)
+                .filter(SensorData.soldier_id == soldier.soldier_id)
+                .order_by(desc(SensorData.timestamp))
+                .first()
+            )
+
+            if latest_sensor:
+                data["latest_sensor"] = {
+                    "heart_rate": latest_sensor.heart_rate,
+                    "body_temp": latest_sensor.body_temp,
+                    "fall_detected": latest_sensor.fall_detected,
+                    "latitude": latest_sensor.latitude,
+                    "longitude": latest_sensor.longitude,
+                    "timestamp": latest_sensor.timestamp.isoformat()
+                }
+
+            result.append(data)
+
+        return result

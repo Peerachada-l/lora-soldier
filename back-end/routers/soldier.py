@@ -1,3 +1,4 @@
+# routers/soldier.py
 from fastapi import APIRouter, Depends, Body
 from sqlalchemy.orm import Session
 from database import get_db
@@ -6,20 +7,18 @@ from services.soldier_service import SoldierService
 
 router = APIRouter(prefix="/soldiers", tags=["Soldiers"])
 
+
 @router.post("/", response_model=SoldierSchema)
 async def create_soldier(soldier: SoldierCreate, db: Session = Depends(get_db)):
-    """Create a new soldier (via service layer)."""
-    service = SoldierService(db)
-    return await service.create_soldier(
-        name=soldier.name, rank=soldier.rank, unit=soldier.unit
+    return await SoldierService(db).create_soldier(
+        name=soldier.name,
+        rank=soldier.rank,
+        unit=soldier.unit
     )
 
-
 @router.get("/", response_model=list[SoldierSchema])
-def get_soldiers(db: Session = Depends(get_db)):
-    """Get all soldiers (via service layer)."""
-    service = SoldierService(db)
-    return service.get_all_soldiers()
+def get_all_soldiers(db: Session = Depends(get_db)):
+    return SoldierService(db).get_all_soldiers()
 
 @router.get("/detailed")
 def get_soldiers_with_details(db: Session = Depends(get_db)):
@@ -28,22 +27,12 @@ def get_soldiers_with_details(db: Session = Depends(get_db)):
 
 @router.get("/{soldier_id}", response_model=SoldierSchema)
 def get_soldier(soldier_id: int, db: Session = Depends(get_db)):
-    """Get specific soldier info."""
-    service = SoldierService(db)
-    return service.get_soldier_by_id(soldier_id)
+    return SoldierService(db).get_soldier_by_id(soldier_id)
 
 
 @router.get("/{soldier_id}/helmet")
 def get_soldier_helmet(soldier_id: int, db: Session = Depends(get_db)):
-    """Get the helmet assigned to a soldier."""
-    service = SoldierService(db)
-    return service.get_soldier_helmet(soldier_id)
-
-# @router.get("/detailed")
-# def get_soldiers_with_details(db: Session = Depends(get_db)):
-#     """Get all soldiers with helmet + latest sensor/location data."""
-#     service = SoldierService(db)
-#     return service.get_all_soldiers_with_details()
+    return SoldierService(db).get_soldier_helmet(soldier_id)
 
 @router.put("/{soldier_id}")
 async def edit_soldier(
@@ -53,13 +42,16 @@ async def edit_soldier(
     unit: str = Body(None),
     db: Session = Depends(get_db)
 ):
-    """Edit soldier details."""
-    service = SoldierService(db)
-    return await service.edit_soldier(soldier_id, name, rank, unit)
+    return await SoldierService(db).edit_soldier(soldier_id, name, rank, unit)
 
+@router.put("/{soldier_id}/wear/{helmet_id}")
+async def wear_helmet(soldier_id: int, helmet_id: int, db: Session = Depends(get_db)):
+    return await SoldierService(db).wear_helmet(soldier_id, helmet_id)
+
+@router.put("/{soldier_id}/remove-helmet")
+async def remove_helmet(soldier_id: int, db: Session = Depends(get_db)):
+    return await SoldierService(db).remove_helmet(soldier_id)
 
 @router.delete("/{soldier_id}")
 async def remove_soldier(soldier_id: int, db: Session = Depends(get_db)):
-    """Delete soldier by ID."""
-    service = SoldierService(db)
-    return await service.remove_soldier(soldier_id)
+    return await SoldierService(db).remove_soldier(soldier_id)
