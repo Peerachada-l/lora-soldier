@@ -1,9 +1,15 @@
 import React from 'react';
-import { LayoutDashboard, Map, BatteryCharging, HardHat } from 'lucide-react';
+import {
+    LayoutDashboard,
+    Map,
+    BatteryCharging,
+    HardHat,
+    Users
+} from 'lucide-react';
 
 /**
  * Sidebar Component
- * Displays navigation icons for Dashboard, GPS, Status, and Helmet pages.
+ * Displays navigation icons for Dashboard, GPS, Status, Helmet, and Soldier pages.
  */
 const Sidebar = ({ currentPage, onNavigate }) => {
     const baseBtn = 'p-3 rounded-xl shadow-xl transition-all duration-200';
@@ -16,40 +22,45 @@ const Sidebar = ({ currentPage, onNavigate }) => {
             {/* Logo Placeholder */}
             <div className="w-8 h-8 rounded-lg bg-red-600/70"></div>
 
-            {/* Dashboard Button */}
+            {/* Dashboard */}
             <button
-                className={`${baseBtn} ${currentPage === 'dashboard' ? activeBtn : inactiveBtn
-                    }`}
+                className={`${baseBtn} ${currentPage === 'dashboard' ? activeBtn : inactiveBtn}`}
                 onClick={() => onNavigate('dashboard')}
                 aria-label="Dashboard"
             >
                 <LayoutDashboard size={24} />
             </button>
 
-            {/* Map View Button */}
+            {/* GPS */}
             <button
-                className={`${baseBtn} ${currentPage === 'gps' ? activeBtn : inactiveBtn
-                    }`}
+                className={`${baseBtn} ${currentPage === 'gps' ? activeBtn : inactiveBtn}`}
                 onClick={() => onNavigate('gps')}
                 aria-label="Map View"
             >
                 <Map size={24} />
             </button>
 
-            {/* Status Page Button */}
+            {/* Status */}
             <button
-                className={`${baseBtn} ${currentPage === 'status' ? activeBtn : inactiveBtn
-                    }`}
+                className={`${baseBtn} ${currentPage === 'status' ? activeBtn : inactiveBtn}`}
                 onClick={() => onNavigate('status')}
                 aria-label="Status Dashboard"
             >
                 <BatteryCharging size={24} />
             </button>
 
-            {/* Helmet Management Button */}
+            {/* Soldier Management */}
             <button
-                className={`${baseBtn} ${currentPage === 'helmet' ? activeBtn : inactiveBtn
-                    }`}
+                className={`${baseBtn} ${currentPage === 'soldier' ? activeBtn : inactiveBtn}`}
+                onClick={() => onNavigate('soldier')}
+                aria-label="Soldier Management"
+            >
+                <Users size={24} />
+            </button>
+
+            {/* Helmet */}
+            <button
+                className={`${baseBtn} ${currentPage === 'helmet' ? activeBtn : inactiveBtn}`}
                 onClick={() => onNavigate('helmet')}
                 aria-label="Helmet Management"
             >

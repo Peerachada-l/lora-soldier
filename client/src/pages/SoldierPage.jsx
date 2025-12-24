@@ -5,6 +5,35 @@ import EditSoldierModal from '../components/EditSoldierModal.jsx';
 
 const API_BASE = 'http://localhost:8000';
 
+// --- TEMP MOCK DATA ---
+const MOCK_SOLDIERS = [
+    {
+        soldier_id: 1,
+        name: 'John Carter',
+        rank: 'Sergeant',
+        unit: 'Alpha',
+    },
+    {
+        soldier_id: 2,
+        name: 'Emily Stone',
+        rank: 'Corporal',
+        unit: 'Bravo',
+    },
+    {
+        soldier_id: 3,
+        name: 'Michael Tan',
+        rank: 'Private',
+        unit: 'Alpha',
+    },
+    {
+        soldier_id: 4,
+        name: 'Somsak Chai',
+        rank: 'Lieutenant',
+        unit: 'Charlie',
+    },
+];
+
+
 const SoldierPage = () => {
     const [soldiers, setSoldiers] = useState([]);
     const [selectedSoldier, setSelectedSoldier] = useState(null);
@@ -23,6 +52,8 @@ const SoldierPage = () => {
 
     useEffect(() => {
         fetchSoldiers();
+        // Test mock data
+        setSoldiers(MOCK_SOLDIERS);
     }, []);
 
     const handleCreate = async (data) => {

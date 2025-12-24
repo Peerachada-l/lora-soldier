@@ -4,6 +4,7 @@ import GPSPage from './pages/GPSPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import HelmetPage from './pages/HelmetPage.jsx';
+import SoldierPage from './pages/SoldierPage.jsx';
 
 // --- MOCK DATA ---
 const initialSoldiers = [
@@ -78,6 +79,8 @@ const App = () => {
         return <StatusPage soldiers={filteredSoldiers} onAddSoldier={handleAddSoldier} />;
       case 'gps':
         return <GPSPage soldiers={soldiers} onSelectSoldier={handleSelectSoldier} />;
+      case 'soldier':
+        return <SoldierPage soldiers={soldiers} onAddSoldier={handleAddSoldier} />;
       case 'helmet':
         return (
           <HelmetPage
