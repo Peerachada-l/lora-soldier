@@ -1,56 +1,51 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Plus } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Search, Filter } from 'lucide-react';
 import SoldierCard from '../components/SoldierCard.jsx';
-import CreateSoldierModal from '../components/CreateSoldierModal.jsx';
-import EditSoldierModal from '../components/EditSoldierModal.jsx';
 
 const API_BASE = 'http://localhost:8000';
 
-const StatusPage = ({ onAddSoldier }) => {
+const StatusPage = () => {
     const [soldiers, setSoldiers] = useState([]);
     const [search, setSearch] = useState('');
     const [unitFilter, setUnitFilter] = useState('All Units');
     const [rankFilter, setRankFilter] = useState('All Ranks');
     const [openDropdown, setOpenDropdown] = useState(null);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [selectedSoldier, setSelectedSoldier] = useState(null);
 
     const units = ['All Units', 'Alpha', 'Bravo', 'Charlie'];
     const ranks = ['All Ranks', 'Captain', 'Sergeant', 'Corporal', 'Private'];
 
-    /** ✅ Fetch all soldiers with helmet + sensor + location */
+    /* 🔄 Fetch soldiers + latest helmet/sensor/location */
     const fetchAllData = async () => {
         try {
             const res = await fetch(`${API_BASE}/soldiers/`);
-            const soldiersData = await res.json();
+            const base = await res.json();
 
             const enriched = await Promise.all(
-                soldiersData.map(async (soldier) => {
+                base.map(async (soldier) => {
                     try {
-                        const helmetRes = await fetch(`${API_BASE}/soldiers/${soldier.soldier_id}/helmet`);
-                        const helmetData = await helmetRes.json();
+                        const helmetRes = await fetch(
+                            `${API_BASE}/soldiers/${soldier.soldier_id}/helmet`
+                        );
+                        const helmet = await helmetRes.json();
 
-                        if (helmetData.helmet_id) {
-                            const [sensorRes, locationRes] = await Promise.all([
-                                fetch(`${API_BASE}/sensors/${helmetData.helmet_id}`),
-                                fetch(`${API_BASE}/locations/${helmetData.helmet_id}`)
-                            ]);
-
-                            const sensorData = await sensorRes.json();
-                            const locationData = await locationRes.json();
-
-                            const latestSensor = sensorData[sensorData.length - 1] || null;
-                            const latestLocation = locationData[locationData.length - 1] || null;
-
-                            return {
-                                ...soldier,
-                                helmet: helmetData,
-                                sensor: latestSensor,
-                                location: latestLocation,
-                            };
-                        } else {
+                        if (!helmet?.helmet_id) {
                             return { ...soldier, helmet: null, sensor: null, location: null };
                         }
+
+                        const [sensorRes, locationRes] = await Promise.all([
+                            fetch(`${API_BASE}/sensors/${helmet.helmet_id}`),
+                            fetch(`${API_BASE}/locations/${helmet.helmet_id}`),
+                        ]);
+
+                        const sensors = await sensorRes.json();
+                        const locations = await locationRes.json();
+
+                        return {
+                            ...soldier,
+                            helmet,
+                            sensor: sensors.at(-1) ?? null,
+                            location: locations.at(-1) ?? null,
+                        };
                     } catch {
                         return { ...soldier, helmet: null, sensor: null, location: null };
                     }
@@ -58,126 +53,39 @@ const StatusPage = ({ onAddSoldier }) => {
             );
 
             setSoldiers(enriched);
-            console.log('✅ Soldiers loaded:', enriched);
         } catch (err) {
-            console.error('❌ Failed to load soldiers:', err);
+            console.error('❌ Failed to load status data:', err);
         }
     };
 
-    /** 🔄 Initial data fetch */
+    /* Initial load */
     useEffect(() => {
         fetchAllData();
     }, []);
 
-    /** 🌐 WebSocket for real-time updates */
+    /* 🌐 WebSocket updates */
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8000/ws/locations');
+        const ws = new WebSocket('ws://localhost:8000/ws/locations');
 
-        socket.onopen = () => console.log('🟢 WebSocket connected');
-
-        socket.onmessage = async (event) => {
-            console.log('📡 WS Message:', event.data);
-
-            try {
-                const data = JSON.parse(event.data);
-
-                // ✅ Handle JSON-structured messages
-                if (data.type === 'soldier_added' || data.type === 'soldier_updated' || data.type === 'soldier_removed') {
-                    console.log('🔄 Refreshing soldiers due to soldier change...');
-                    fetchAllData();
-                } 
-                else if (data.type === 'sensor_update' && data.helmet_id) {
-                    console.log(`⚡ Sensor update for helmet ${data.helmet_id}`);
-
-                    // Fetch only updated sensor data
-                    const res = await fetch(`${API_BASE}/sensors/${data.helmet_id}`);
-                    const sensorData = await res.json();
-                    const latest = sensorData[sensorData.length - 1] || null;
-
-                    // Update affected soldier locally
-                    setSoldiers((prev) =>
-                        prev.map((s) =>
-                            s.helmet?.helmet_id === data.helmet_id
-                                ? { ...s, sensor: latest }
-                                : s
-                        )
-                    );
-                }
-            } catch {
-                // ✅ Fallback: handle plain text WebSocket messages
-                if (
-                    event.data.includes('Soldier added') ||
-                    event.data.includes('updated') ||
-                    event.data.includes('removed') ||
-                    event.data.includes('sensor')
-                ) {
-                    console.log('🔄 Refreshing soldiers (text message fallback)...');
-                    fetchAllData();
-                }
-            }
+        ws.onmessage = () => {
+            fetchAllData(); // status refresh only
         };
 
-        socket.onclose = () => console.log('🔴 WebSocket disconnected');
-
-        return () => socket.close();
+        return () => ws.close();
     }, []);
 
-    /** ➕ Create Soldier */
-    const handleCreateSoldier = async (newSoldier) => {
-        try {
-            const res = await fetch(`${API_BASE}/soldiers/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newSoldier),
-            });
-            if (!res.ok) throw new Error('Failed to add soldier');
-            const createdSoldier = await res.json();
-
-            setSoldiers((prev) => [...prev, createdSoldier]);
-            setShowCreateModal(false);
-        } catch (err) {
-            console.error('❌ Error creating soldier:', err);
-        }
-    };
-
-    /** ✏️ Edit Soldier */
-    const handleEditSoldier = async (soldierId, updatedData) => {
-        try {
-            const res = await fetch(`${API_BASE}/soldiers/${soldierId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
-            });
-            if (!res.ok) throw new Error('Failed to update soldier');
-
-            const updated = await res.json();
-            setSoldiers((prev) =>
-                prev.map((s) => (s.soldier_id === soldierId ? { ...s, ...updated } : s))
-            );
-            setSelectedSoldier(null);
-        } catch (err) {
-            console.error('❌ Failed to update soldier:', err);
-        }
-    };
-
-    /** ❌ Remove Soldier */
-    const handleRemoveSoldier = async (soldierId) => {
-        try {
-            const res = await fetch(`${API_BASE}/soldiers/${soldierId}`, { method: 'DELETE' });
-            if (!res.ok) throw new Error('Failed to remove soldier');
-
-            setSoldiers((prev) => prev.filter((s) => s.soldier_id !== soldierId));
-            setSelectedSoldier(null);
-        } catch (err) {
-            console.error('❌ Failed to remove soldier:', err);
-        }
-    };
-
-    /** 🔍 Filter soldiers list */
+    /* 🔍 Filters + Search */
     const filteredSoldiers = useMemo(() => {
         let list = [...soldiers];
-        if (unitFilter !== 'All Units') list = list.filter((s) => s.unit === unitFilter);
-        if (rankFilter !== 'All Ranks') list = list.filter((s) => s.rank === rankFilter);
+
+        if (unitFilter !== 'All Units') {
+            list = list.filter((s) => s.unit === unitFilter);
+        }
+
+        if (rankFilter !== 'All Ranks') {
+            list = list.filter((s) => s.rank === rankFilter);
+        }
+
         if (search.trim()) {
             const q = search.toLowerCase();
             list = list.filter(
@@ -186,6 +94,7 @@ const StatusPage = ({ onAddSoldier }) => {
                     s.soldier_id.toString().includes(q)
             );
         }
+
         return list;
     }, [soldiers, search, unitFilter, rankFilter]);
 
@@ -199,47 +108,53 @@ const StatusPage = ({ onAddSoldier }) => {
     return (
         <main className="flex-1 overflow-auto p-4 md:p-8">
             {/* Header */}
-            <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
-                <h1 className="text-3xl font-extrabold text-white">Unit Status Overview</h1>
+            <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+                <h1 className="text-3xl font-extrabold text-white">
+                    Live Soldier Status
+                </h1>
 
-                <div className="flex flex-col md:flex-row md:items-center gap-3 relative">
+                <div className="flex flex-wrap gap-3 relative">
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
+                        <Search
+                            size={18}
+                            className="absolute left-3 top-2.5 text-slate-400"
+                        />
                         <input
-                            type="text"
-                            placeholder="Search soldier name or ID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="bg-slate-800 text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                            placeholder="Search soldier ID or name..."
+                            className="bg-slate-800 text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-slate-700 w-64"
                         />
                     </div>
 
                     {/* Unit Filter */}
                     <div className="relative">
                         <button
-                            onClick={() => setOpenDropdown(openDropdown === 'unit' ? null : 'unit')}
+                            onClick={() =>
+                                setOpenDropdown(openDropdown === 'unit' ? null : 'unit')
+                            }
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${accentColor} hover:bg-slate-800 transition`}
                         >
                             <Filter size={18} />
                             <span>{unitFilter}</span>
                         </button>
+
                         {openDropdown === 'unit' && (
                             <div className="absolute right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg w-40 z-20">
-                                {units.map((option) => (
+                                {units.map((u) => (
                                     <div
-                                        key={option}
+                                        key={u}
                                         onClick={() => {
-                                            setUnitFilter(option);
+                                            setUnitFilter(u);
                                             setOpenDropdown(null);
                                         }}
-                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${
-                                            unitFilter === option
+                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 ${unitFilter === u
                                                 ? 'bg-slate-700 text-blue-400 font-semibold'
                                                 : 'text-slate-300'
-                                        }`}
+                                            }`}
                                     >
-                                        {option}
+                                        {u}
                                     </div>
                                 ))}
                             </div>
@@ -249,42 +164,35 @@ const StatusPage = ({ onAddSoldier }) => {
                     {/* Rank Filter */}
                     <div className="relative">
                         <button
-                            onClick={() => setOpenDropdown(openDropdown === 'rank' ? null : 'rank')}
+                            onClick={() =>
+                                setOpenDropdown(openDropdown === 'rank' ? null : 'rank')
+                            }
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${accentColor} hover:bg-slate-800 transition`}
                         >
                             <Filter size={18} />
                             <span>{rankFilter}</span>
                         </button>
+
                         {openDropdown === 'rank' && (
                             <div className="absolute right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg w-40 z-20">
-                                {ranks.map((option) => (
+                                {ranks.map((r) => (
                                     <div
-                                        key={option}
+                                        key={r}
                                         onClick={() => {
-                                            setRankFilter(option);
+                                            setRankFilter(r);
                                             setOpenDropdown(null);
                                         }}
-                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 transition ${
-                                            rankFilter === option
+                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 ${rankFilter === r
                                                 ? 'bg-slate-700 text-blue-400 font-semibold'
                                                 : 'text-slate-300'
-                                        }`}
+                                            }`}
                                     >
-                                        {option}
+                                        {r}
                                     </div>
                                 ))}
                             </div>
                         )}
                     </div>
-
-                    {/* Add Soldier */}
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
-                    >
-                        <Plus size={18} />
-                        <span>Add Soldier</span>
-                    </button>
                 </div>
             </header>
 
@@ -292,37 +200,14 @@ const StatusPage = ({ onAddSoldier }) => {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
                 {filteredSoldiers.length > 0 ? (
                     filteredSoldiers.map((s) => (
-                        <SoldierCard
-                            key={s.soldier_id}
-                            soldier={s}
-                            onEdit={() => setSelectedSoldier(s)}
-                        />
+                        <SoldierCard key={s.soldier_id} soldier={s} />
                     ))
                 ) : (
-                    <div className="md:col-span-2 lg:col-span-3 text-center p-10 bg-slate-800/50 rounded-xl text-slate-400">
-                        No soldiers found in the database.
+                    <div className="col-span-full text-center p-10 bg-slate-800/50 rounded-xl text-slate-400">
+                        No matching soldiers.
                     </div>
                 )}
             </div>
-
-            {/* Modals */}
-            {showCreateModal && (
-                <CreateSoldierModal
-                    onClose={() => setShowCreateModal(false)}
-                    onCreate={handleCreateSoldier}
-                    ranks={ranks}
-                    units={units}
-                />
-            )}
-
-            {selectedSoldier && (
-                <EditSoldierModal
-                    soldier={selectedSoldier}
-                    onClose={() => setSelectedSoldier(null)}
-                    onSave={handleEditSoldier}
-                    onRemove={handleRemoveSoldier}
-                />
-            )}
         </main>
     );
 };
