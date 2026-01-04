@@ -18,43 +18,60 @@ const StatusPage = () => {
     const fetchAllData = async () => {
         try {
             const res = await fetch(`${API_BASE}/soldiers/`);
-            const base = await res.json();
+            const baseSoldiers = await res.json();
 
             const enriched = await Promise.all(
-                base.map(async (soldier) => {
+                baseSoldiers.map(async (s) => {
                     try {
+                        // HELMET INFO
                         const helmetRes = await fetch(
-                            `${API_BASE}/soldiers/${soldier.soldier_id}/helmet`
+                            `${API_BASE}/soldiers/${s.soldier_id}/helmet`
                         );
-                        const helmet = await helmetRes.json();
+                        const helmetRaw = await helmetRes.json();
 
-                        if (!helmet?.helmet_id) {
-                            return { ...soldier, helmet: null, sensor: null, location: null };
+                        let helmet = null;
+
+                        if (helmetRaw?.helmet_id) {
+                            helmet = {
+                                helmet_id: helmetRaw.helmet_id,
+                                status: helmetRaw.helmet_status,
+                            };
                         }
 
-                        const [sensorRes, locationRes] = await Promise.all([
-                            fetch(`${API_BASE}/sensors/${helmet.helmet_id}`),
-                            fetch(`${API_BASE}/locations/${helmet.helmet_id}`),
-                        ]);
-
-                        const sensors = await sensorRes.json();
-                        const locations = await locationRes.json();
+                        // SENSOR (LATEST)
+                        let latest_sensor = null;
+                        if (helmet?.helmet_id) {
+                            const sensorRes = await fetch(
+                                `${API_BASE}/sensors/${helmet.helmet_id}`
+                            );
+                            const sensors = await sensorRes.json();
+                            latest_sensor = sensors.at(-1) ?? null;
+                        }
 
                         return {
-                            ...soldier,
+                            soldier_id: s.soldier_id,
+                            name: s.name,
+                            rank: s.rank,
+                            unit: s.unit,
                             helmet,
-                            sensor: sensors.at(-1) ?? null,
-                            location: locations.at(-1) ?? null,
+                            latest_sensor,
                         };
                     } catch {
-                        return { ...soldier, helmet: null, sensor: null, location: null };
+                        return {
+                            soldier_id: s.soldier_id,
+                            name: s.name,
+                            rank: s.rank,
+                            unit: s.unit,
+                            helmet: null,
+                            latest_sensor: null,
+                        };
                     }
                 })
             );
 
             setSoldiers(enriched);
         } catch (err) {
-            console.error('❌ Failed to load status data:', err);
+            console.error('❌ Failed to load soldiers:', err);
         }
     };
 

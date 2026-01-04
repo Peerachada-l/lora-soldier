@@ -6,11 +6,11 @@ const API_BASE = 'http://localhost:8000';
 const WS_URL = 'ws://localhost:8000/ws';
 
 // Temp mock data
-const MOCK_HELMETS = [
-    { helmet_id: 1, status: 'active' },
-    { helmet_id: 2, status: 'inactive' },
-    { helmet_id: 3, status: 'maintenance' },
-];
+// const MOCK_HELMETS = [
+//     { helmet_id: 1, status: 'active' },
+//     { helmet_id: 2, status: 'inactive' },
+//     { helmet_id: 3, status: 'maintenance' },
+// ];
 
 const HelmetPage = () => {
     const [helmets, setHelmets] = useState([]);
@@ -29,6 +29,22 @@ const HelmetPage = () => {
             console.error('Failed to fetch helmets');
         }
     };
+
+    // ---------------- ADD ----------------
+    const handleAddHelmet = async () => {
+    try {
+        const res = await fetch(
+            `${API_BASE}/helmets?status=inactive`,
+            { method: 'POST' }
+        );
+
+        if (!res.ok) throw new Error();
+
+        fetchHelmets(); // refresh list
+    } catch {
+        alert('Failed to add helmet');
+    }
+};
 
     // ---------------- DELETE ----------------
     const deleteHelmet = async (helmet_id) => {
@@ -57,11 +73,9 @@ const HelmetPage = () => {
         );
 
         try {
-            await fetch(`${API_BASE}/helmets/${helmet_id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
-            });
+            await fetch(`${API_BASE}/helmets/${helmet_id}/status?status=${status}`, {
+            method: 'PUT',
+        });
         } catch {
             fetchHelmets(); // rollback
         }
@@ -69,8 +83,8 @@ const HelmetPage = () => {
 
     // ---------------- WEBSOCKET ----------------
     useEffect(() => {
-        setHelmets(MOCK_HELMETS); // dev
-        // fetchHelmets();
+        // setHelmets(MOCK_HELMETS); // dev
+        fetchHelmets();
 
         wsRef.current = new WebSocket(WS_URL);
 
@@ -222,6 +236,7 @@ const HelmetPage = () => {
             {showCreateModal && (
                 <HelmetCreateModal
                     onClose={() => setShowCreateModal(false)}
+                    onAdd={handleAddHelmet}
                 />
             )}
         </main>

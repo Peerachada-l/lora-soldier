@@ -5,6 +5,9 @@ import EditSoldierModal from '../components/EditSoldierModal.jsx';
 
 const API_BASE = 'http://localhost:8000';
 
+const RANKS = ['All', 'Captain', 'Corporal', 'Sergeant'];
+const UNITS = ['All', 'Alpha', 'Bravo', 'Charlie'];
+
 // --- TEMP MOCK DATA ---
 const MOCK_SOLDIERS = [
     {
@@ -53,26 +56,45 @@ const SoldierPage = () => {
     useEffect(() => {
         fetchSoldiers();
         // Test mock data
-        setSoldiers(MOCK_SOLDIERS);
+        // setSoldiers(MOCK_SOLDIERS);
     }, []);
 
     const handleCreate = async (data) => {
-        const res = await fetch(`${API_BASE}/soldiers/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-        if (res.ok) fetchSoldiers();
-        setShowCreateModal(false);
+        try {
+            const res = await fetch(`${API_BASE}/soldiers/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            if (!res.ok) throw new Error();
+
+            await fetchSoldiers();   // ✅ refresh list immediately
+            setShowCreateModal(false);
+        } catch (err) {
+            console.error('❌ Failed to create soldier', err);
+            alert('Failed to create soldier');
+        }
     };
 
+
     const handleEdit = async (id, data) => {
-        await fetch(`${API_BASE}/soldiers/${id}`, {
+        const res = await fetch(`${API_BASE}/soldiers/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
-        fetchSoldiers();
+
+        if (!res.ok) return;
+
+        const updatedSoldier = await res.json();
+        
+        setSoldiers((prev) =>
+            prev.map((s) =>
+                s.soldier_id === id ? { ...s, ...updatedSoldier } : s
+            )
+        );
+
         setSelectedSoldier(null);
     };
 
@@ -139,6 +161,8 @@ const SoldierPage = () => {
                 <CreateSoldierModal
                     onClose={() => setShowCreateModal(false)}
                     onCreate={handleCreate}
+                    ranks={RANKS}
+                    units={UNITS}
                 />
             )}
 
@@ -146,8 +170,7 @@ const SoldierPage = () => {
                 <EditSoldierModal
                     soldier={selectedSoldier}
                     onClose={() => setSelectedSoldier(null)}
-                    onSave={handleEdit}
-                    onRemove={handleRemove}
+                    onReload={fetchSoldiers}
                 />
             )}
         </main>

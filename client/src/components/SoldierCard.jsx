@@ -12,18 +12,17 @@ const SoldierCard = ({ soldier, onEdit }) => {
         rank,
         unit,
         helmet,
-        sensor,
-        location,
+        latest_sensor,
     } = soldier;
 
     // Safe optional chaining
     const helmetId = helmet?.helmet_id ?? 'N/A';
     const status = helmet?.status ?? 'UNKNOWN';
-    const heart_rate = sensor?.heart_rate ?? 0;
-    const body_temp = sensor?.body_temp ?? 0;
-    const fall_detected = sensor?.fall_detected ?? false;
-    // const latitude = location?.latitude ?? null;
-    // const longitude = location?.longitude ?? null;
+
+    const heart_rate = latest_sensor?.heart_rate ?? 0;
+    const body_temp = latest_sensor?.body_temp ?? 0;
+    const fall_detected = latest_sensor?.fall_detected ?? false;
+
 
     // Border color logic
     let borderColor;
