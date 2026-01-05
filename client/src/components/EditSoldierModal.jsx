@@ -23,29 +23,49 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
             return;
         }
 
-        const payload = {
-            name: form.name.trim(),
-            rank: form.rank.trim(),
-            unit: form.unit.trim(),
-            helmet_id: form.helmet_id === '' ? null : Number(form.helmet_id),
-        };
-
         setLoading(true);
+
         try {
+            // 1️⃣ Update basic soldier info
             const res = await fetch(`${API_BASE}/soldiers/${soldier.soldier_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({
+                    name: form.name.trim(),
+                    rank: form.rank.trim(),
+                    unit: form.unit.trim(),
+                }),
             });
 
             if (!res.ok) throw new Error('Failed to update soldier');
 
-            alert(`✅ Soldier #${soldier.soldier_id} updated successfully`);
+            // 2️⃣ Helmet logic
+            if (form.helmet_id !== '') {
+                // 🪖 Wear helmet
+                const wearRes = await fetch(
+                    `${API_BASE}/soldiers/${soldier.soldier_id}/wear/${Number(form.helmet_id)}`,
+                    { method: 'PUT' }
+                );
+
+                if (!wearRes.ok) {
+                    const err = await wearRes.json();
+                    throw new Error(err.detail || 'Helmet assignment failed');
+                }
+            } else {
+                // ❌ Remove helmet
+                await fetch(
+                    `${API_BASE}/soldiers/${soldier.soldier_id}/remove-helmet`,
+                    { method: 'PUT' }
+                );
+            }
+
+            alert(`✅ Soldier #${soldier.soldier_id} updated`);
             onClose();
             onReload?.();
+
         } catch (err) {
-            console.error('❌ Error updating soldier:', err);
-            alert('Error updating soldier.');
+            console.error('❌ Error:', err);
+            alert(err.message);
         } finally {
             setLoading(false);
         }

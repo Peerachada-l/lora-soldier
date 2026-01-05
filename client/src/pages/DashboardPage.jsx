@@ -34,28 +34,42 @@ const DashboardPage = () => {
 
     // --- Derived Stats ---
     const stats = useMemo(() => {
-        const total = soldiers.length || 1;
         let fall = 0;
         let dead = 0;
         let sumHR = 0;
         let sumTemp = 0;
+        let countWithSensor = 0;
 
         soldiers.forEach((s) => {
             const sensor = s.latest_sensor;
             if (!sensor) return;
 
+            countWithSensor += 1;
+
             if (sensor.fall_detected) fall += 1;
 
-            if (s.helmet_id && sensor.heart_rate === 0) dead += 1;
+            // DEAD LOGIC = if the solider worn helmet and no heart rate + helmet satus = active???
+            if (s.helmet?.helmet_worn && sensor.heart_rate === 0) {
+                dead += 1;
+            }
 
-            sumHR += sensor.heart_rate || 0;
-            sumTemp += sensor.body_temp || 0;
+            sumHR += sensor.heart_rate;
+            sumTemp += sensor.body_temp;
         });
 
-        const avgHR = (sumHR / total).toFixed(1);
-        const avgTemp = (sumTemp / total).toFixed(1);
+        const avgHR =
+            countWithSensor > 0 ? (sumHR / countWithSensor).toFixed(1) : '0.0';
 
-        return { total, fall, dead, avgHR, avgTemp };
+        const avgTemp =
+            countWithSensor > 0 ? (sumTemp / countWithSensor).toFixed(1) : '0.0';
+
+        return {
+            total: soldiers.length,
+            fall,
+            dead,
+            avgHR,
+            avgTemp,
+        };
     }, [soldiers]);
 
     // --- Unit Distribution for Bar Chart ---

@@ -24,8 +24,13 @@ async def add_sensor_data(soldier_id: int, sensor: SensorDataCreate, db: Session
 
         # Broadcast minimal update to clients
         await manager.broadcast(json.dumps({
-            "type": "sensors_data_update",
-            "soldier_id": soldier_id
+            "type": "location_update",
+            "soldier_id": soldier_id,
+            "latitude": new_data.latitude,
+            "longitude": new_data.longitude,
+            "heart_rate": new_data.heart_rate,
+            "fall_detected": new_data.fall_detected,
+            "timestamp": new_data.timestamp.isoformat()
         }))
 
         return new_data
