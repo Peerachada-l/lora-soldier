@@ -5,34 +5,44 @@ const API_BASE = 'http://localhost:8000';
 
 const EditSoldierModal = ({ soldier, onClose, onReload }) => {
     const [form, setForm] = useState({
-        name: soldier.name,
-        rank: soldier.rank,
-        unit: soldier.unit,
+        name: soldier.name || '',
+        rank: soldier.rank || '',
+        unit: soldier.unit || '',
+        helmet_id: soldier.helmet_id ?? '' // allow empty
     });
     const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) =>
-        setForm({ ...form, [e.target.name]: e.target.value });
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
 
     const handleSave = async () => {
         if (!form.name.trim() || !form.rank.trim() || !form.unit.trim()) {
-            alert('Please fill out all fields before saving.');
+            alert('Please fill out name, rank, and unit.');
             return;
         }
+
+        const payload = {
+            name: form.name.trim(),
+            rank: form.rank.trim(),
+            unit: form.unit.trim(),
+            helmet_id: form.helmet_id === '' ? null : Number(form.helmet_id),
+        };
 
         setLoading(true);
         try {
             const res = await fetch(`${API_BASE}/soldiers/${soldier.soldier_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) throw new Error('Failed to update soldier');
 
             alert(`✅ Soldier #${soldier.soldier_id} updated successfully`);
             onClose();
-            onReload?.(); // refresh soldier list
+            onReload?.();
         } catch (err) {
             console.error('❌ Error updating soldier:', err);
             alert('Error updating soldier.');
@@ -54,7 +64,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
 
             alert(`🗑️ Soldier #${soldier.soldier_id} removed successfully`);
             onClose();
-            onReload?.(); // refresh soldier list
+            onReload?.();
         } catch (err) {
             console.error('❌ Error removing soldier:', err);
             alert('Error removing soldier.');
@@ -79,6 +89,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
                 </h2>
 
                 <div className="space-y-3">
+                    {/* Name */}
                     <div>
                         <label className="block text-slate-300 text-sm mb-1">Name</label>
                         <input
@@ -89,6 +100,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
                         />
                     </div>
 
+                    {/* Rank */}
                     <div>
                         <label className="block text-slate-300 text-sm mb-1">Rank</label>
                         <input
@@ -99,6 +111,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
                         />
                     </div>
 
+                    {/* Unit */}
                     <div>
                         <label className="block text-slate-300 text-sm mb-1">Unit</label>
                         <input
@@ -108,17 +121,37 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
                             className="w-full p-2 rounded-lg bg-slate-800 text-white border border-slate-700 focus:ring focus:ring-blue-500"
                         />
                     </div>
+
+                    {/* Helmet ID */}
+                    <div>
+                        <label className="block text-slate-300 text-sm mb-1">
+                            Helmet ID
+                        </label>
+                        <input
+                            type="text"
+                            name="helmet_id"
+                            value={form.helmet_id}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === '' || /^\d+$/.test(val)) {
+                                    setForm({ ...form, helmet_id: val });
+                                }
+                            }}
+                            placeholder="Enter helmet ID"
+                            className="w-full p-2 rounded-lg bg-slate-800 text-white border border-slate-700 focus:ring focus:ring-purple-500"
+                        />
+
+                    </div>
                 </div>
 
                 <div className="flex justify-between mt-6">
                     <button
                         onClick={handleRemove}
                         disabled={loading}
-                        className={`px-4 py-2 rounded-lg ${
-                            loading
+                        className={`px-4 py-2 rounded-lg ${loading
                                 ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                                 : 'bg-red-600 hover:bg-red-700 text-white'
-                        }`}
+                            }`}
                     >
                         Remove Soldier
                     </button>
@@ -126,11 +159,10 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
                     <button
                         onClick={handleSave}
                         disabled={loading}
-                        className={`px-4 py-2 rounded-lg ${
-                            loading
+                        className={`px-4 py-2 rounded-lg ${loading
                                 ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        }`}
+                            }`}
                     >
                         {loading ? 'Saving...' : 'Save Changes'}
                     </button>
