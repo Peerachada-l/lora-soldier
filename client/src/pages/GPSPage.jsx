@@ -10,12 +10,12 @@ const GPSPage = () => {
     const [activeSoldier, setActiveSoldier] = useState(null);
 
     /* ===============================
-       1️⃣ LOAD SOLDIER METADATA ONCE
+       1️⃣ LOAD SOLDIER + HELMET DATA
        =============================== */
     useEffect(() => {
         const fetchSoldiers = async () => {
             try {
-                const res = await fetch(`${API_BASE}/soldiers`);
+                const res = await fetch(`${API_BASE}/soldiers/detailed`);
                 if (!res.ok) throw new Error('Failed to fetch soldiers');
 
                 const data = await res.json();
@@ -25,6 +25,10 @@ const GPSPage = () => {
                         soldier_id: s.soldier_id,
                         name: s.name,
                         unit: s.unit,
+
+                        helmet_worn: s.helmet?.helmet_worn ?? false,
+                        helmet_status: s.helmet?.status ?? null,
+
                         latitude: null,
                         longitude: null,
                         heart_rate: null,
@@ -43,7 +47,6 @@ const GPSPage = () => {
        2️⃣ REAL-TIME LOCATION UPDATES
        =============================== */
     useEffect(() => {
-        console.log('🌐 Connecting to WebSocket...');
         const ws = new WebSocket(WS_URL);
 
         ws.onopen = () => console.log('🟢 WebSocket connected');
@@ -51,7 +54,6 @@ const GPSPage = () => {
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-
                 if (data.type !== 'location_update') return;
 
                 const {
@@ -82,9 +84,6 @@ const GPSPage = () => {
             }
         };
 
-        ws.onerror = err => console.error('❌ WebSocket error:', err);
-        ws.onclose = () => console.log('🔴 WebSocket disconnected');
-
         return () => ws.close();
     }, []);
 
@@ -103,11 +102,17 @@ const GPSPage = () => {
                     longitude,
                     heart_rate,
                     fall_detected,
+                    helmet_worn,
+                    helmet_status,
                 } = soldier;
 
+                /* ❌ FILTER: helmet rules */
+                if (!helmet_worn) return null;
+                if (helmet_status !== 'active') return null;
+
                 if (
-                    latitude === null ||
-                    longitude === null ||
+                    latitude == null ||
+                    longitude == null ||
                     isNaN(latitude) ||
                     isNaN(longitude)
                 )
