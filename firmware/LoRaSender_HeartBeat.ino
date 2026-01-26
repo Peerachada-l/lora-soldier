@@ -17,7 +17,7 @@ Adafruit_MPU6050 mpu;
 
 const int helmetID = 3;
 int counter = 0;
-const byte RATE_SIZE = 4;
+const byte RATE_SIZE = 12;
 byte rates[RATE_SIZE];
 byte rateSpot = 0;
 long lastBeat = 0;
