@@ -42,7 +42,7 @@ class Helmet(Base):
 class SensorData(Base):
     __tablename__ = "sensor_data"
 
-    sensor_id = Column(Integer, primary_key=True, index=True)
+    data_id = Column(Integer, primary_key=True, index=True)
     soldier_id = Column(Integer, ForeignKey("soldiers.soldier_id", ondelete="CASCADE"), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
     heart_rate = Column(Integer, default=0)

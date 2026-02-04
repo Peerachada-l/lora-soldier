@@ -48,7 +48,7 @@ class SensorDataCreate(BaseModel):
 
 
 class SensorData(BaseModel):
-    sensor_id: int
+    data_id: int
     soldier_id: int
     heart_rate: int
     body_temp: float
