@@ -1,13 +1,4 @@
 import React, { useState } from 'react';
-
-/**
- * CreateSoldierModal Component
- * Props:
- *  - onClose: function to close the modal
- *  - onCreate: function to handle soldier creation (receives soldier object)
- *  - ranks: array of rank strings
- *  - units: array of unit strings
- */
 const CreateSoldierModal = ({ onClose, onCreate, ranks, units }) => {
     const [newSoldier, setNewSoldier] = useState({
         soldier_id: '',
@@ -26,7 +17,7 @@ const CreateSoldierModal = ({ onClose, onCreate, ranks, units }) => {
         const { name, rank, unit } = newSoldier;
         if (!name || !rank || !unit) return;
 
-        onCreate({ name, rank, unit });  // <- call StatusPage handler
+        onCreate({ name, rank, unit });  
     };
 
 

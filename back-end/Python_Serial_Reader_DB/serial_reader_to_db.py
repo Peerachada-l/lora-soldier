@@ -17,7 +17,7 @@ for p in ports:
     port = p.device
     print(p.device)
 
-ser = serial.Serial(port, 115200, timeout=1)
+ser = serial.Serial('COM6', 115200, timeout=1)
 
 # conn = psycopg2.connect(
 #     host=os.getenv("POSTGRES_HOST"),
@@ -59,6 +59,7 @@ while True:
             fall_detected = False
         if ir < 10000:
             heart_rate = 0
+            body_temp = 0.0
         payload = {
             "heart_rate": heart_rate,
             "body_temp": body_temp,

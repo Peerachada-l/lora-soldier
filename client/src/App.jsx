@@ -34,26 +34,26 @@ const App = () => {
 
   const [helmets, setHelmets] = useState(initialHelmets);
 
-  // --- Add new soldier handler ---
+
   const handleAddSoldier = (newSoldier) => {
     const nextId = soldiers.length ? Math.max(...soldiers.map(s => s.soldier_id)) + 1 : 1;
     setSoldiers([...soldiers, { soldier_id: nextId, ...newSoldier }]);
   };
 
-  // --- Add new helmet handler ---
+
   const handleAddHelmet = (newHelmet) => {
     const nextId = helmets.length ? Math.max(...helmets.map(h => h.helmet_id)) + 1 : 101;
     setHelmets([...helmets, { helmet_id: nextId, ...newHelmet }]);
   };
 
-  // --- Connect/Disconnect helmet handler ---
+
   const handleConnectHelmet = (helmetId, soldierId) => {
     setHelmets(helmets.map(h =>
       h.helmet_id === helmetId ? { ...h, soldier_id: soldierId || null } : h
     ));
   };
 
-  // --- Navigation handlers ---
+
   const handleNavigate = (page) => {
     setCurrentPage(page);
     if (page !== 'status') setFilterSoldierId(null);
@@ -64,13 +64,13 @@ const App = () => {
     setCurrentPage('status');
   };
 
-  // --- Determine filtered soldiers ---
+ 
   const filteredSoldiers =
     filterSoldierId != null
       ? soldiers.filter(s => s.soldier_id === filterSoldierId)
       : soldiers;
 
-  // --- Render the current page ---
+
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
