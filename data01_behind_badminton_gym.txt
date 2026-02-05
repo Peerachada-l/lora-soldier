@@ -1,0 +1,13 @@
+=== SERIAL LOG START ===
+
+{'ID': 3, 'IR': 21192, 'BPM': 51.77, 'AvgBPM': 53, 'TempC': 31.87, 'Counter': 54, 'AccelX': 0.39, 'AccelY': -9.65, 'AccelZ': 1.81, 'RotaX': -0.04, 'RotaY': 0.03, 'RotaZ': -0.02, 'Lat': 13.728907, 'Lng': 100.772941, 'rssi': 54, 'timestamp': '2026-02-03T20:04:46.133865'}
+{'ID': 3, 'IR': 21232, 'BPM': 51.77, 'AvgBPM': 52, 'TempC': 31.81, 'Counter': 55, 'AccelX': 0.38, 'AccelY': -9.65, 'AccelZ': 1.83, 'RotaX': -0.04, 'RotaY': 0.03, 'RotaZ': -0.02, 'Lat': 13.728915, 'Lng': 100.772939, 'rssi': 54, 'timestamp': '2026-02-03T20:04:51.147996'}
+{'ID': 3, 'IR': 21155, 'BPM': 54.6, 'AvgBPM': 54, 'TempC': 31.75, 'Counter': 56, 'AccelX': 0.39, 'AccelY': -9.65, 'AccelZ': 1.79, 'RotaX': -0.04, 'RotaY': 0.03, 'RotaZ': -0.02, 'Lat': 13.728891, 'Lng': 100.772934, 'rssi': 54, 'timestamp': '2026-02-03T20:04:56.164058'}
+{'ID': 3, 'IR': 21213, 'BPM': 50.89, 'AvgBPM': 54, 'TempC': 31.81, 'Counter': 57, 'AccelX': 0.39, 'AccelY': -9.65, 'AccelZ': 1.79, 'RotaX': -0.03, 'RotaY': 0.03, 'RotaZ': -0.02, 'Lat': 13.728879, 'Lng': 100.772941, 'rssi': 54, 'timestamp': '2026-02-03T20:05:01.179490'}
+{'ID': 3, 'IR': 106806, 'BPM': 50.89, 'AvgBPM': 54, 'TempC': 32.63, 'Counter': 58, 'AccelX': 0.3, 'AccelY': -5.31, 'AccelZ': 7.21, 'RotaX': -0.14, 'RotaY': 0.13, 'RotaZ': -0.26, 'Lat': 13.728875, 'Lng': 100.772964, 'rssi': 70, 'timestamp': '2026-02-03T20:05:06.195736'}
+
+=== SUMMARY ===
+Total lines received: 32
+Valid packets saved: 5
+Corrupted packets: 27
+Corruption rate: 84.38%
