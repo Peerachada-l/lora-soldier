@@ -1,10 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, Map, BatteryCharging, HardHat } from 'lucide-react';
 
-/**
- * Sidebar Component
- * Displays navigation icons for Dashboard, GPS, Status, and Helmet pages.
- */
+
 const Sidebar = ({ currentPage, onNavigate }) => {
     const baseBtn = 'p-3 rounded-xl shadow-xl transition-all duration-200';
     const activeBtn = 'bg-red-600/70 text-white';
@@ -13,10 +10,10 @@ const Sidebar = ({ currentPage, onNavigate }) => {
 
     return (
         <aside className="w-16 flex flex-col items-center py-6 space-y-8 bg-gray-950/50 shadow-2xl border-r border-slate-700/50">
-            {/* Logo Placeholder */}
+           
             <div className="w-8 h-8 rounded-lg bg-red-600/70"></div>
 
-            {/* Dashboard Button */}
+          
             <button
                 className={`${baseBtn} ${currentPage === 'dashboard' ? activeBtn : inactiveBtn
                     }`}
@@ -26,7 +23,6 @@ const Sidebar = ({ currentPage, onNavigate }) => {
                 <LayoutDashboard size={24} />
             </button>
 
-            {/* Map View Button */}
             <button
                 className={`${baseBtn} ${currentPage === 'gps' ? activeBtn : inactiveBtn
                     }`}
@@ -36,7 +32,7 @@ const Sidebar = ({ currentPage, onNavigate }) => {
                 <Map size={24} />
             </button>
 
-            {/* Status Page Button */}
+ 
             <button
                 className={`${baseBtn} ${currentPage === 'status' ? activeBtn : inactiveBtn
                     }`}
@@ -46,7 +42,7 @@ const Sidebar = ({ currentPage, onNavigate }) => {
                 <BatteryCharging size={24} />
             </button>
 
-            {/* Helmet Management Button */}
+  
             <button
                 className={`${baseBtn} ${currentPage === 'helmet' ? activeBtn : inactiveBtn
                     }`}

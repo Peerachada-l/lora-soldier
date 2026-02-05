@@ -11,9 +11,6 @@ router = APIRouter(prefix="/sensors", tags=["Sensor Data"])
 
 @router.post("/{helmet_id}", response_model=SensorSchema)
 async def add_sensor_data(helmet_id: int, sensor: SensorDataCreate, db: Session = Depends(get_db)):
-    """
-    Add new sensor data for a helmet and broadcast update to WebSocket clients.
-    """
     try:
         service = SensorService(db)
         new_data = await service.add_sensor_data(
@@ -23,7 +20,7 @@ async def add_sensor_data(helmet_id: int, sensor: SensorDataCreate, db: Session 
             fall_detected=sensor.fall_detected,
         )
 
-        # ✅ Notify all WebSocket clients in real-time
+        # Notify all WebSocket clients
         await manager.broadcast(json.dumps({
             "type": "sensor_update",
             "helmet_id": helmet_id
@@ -36,15 +33,9 @@ async def add_sensor_data(helmet_id: int, sensor: SensorDataCreate, db: Session 
 
 @router.get("/")
 def get_all_sensor_data(db: Session = Depends(get_db)):
-    """
-    Retrieve all sensor data from all helmets.
-    """
     return SensorService(db).get_all_sensor_data()
 
 
 @router.get("/{helmet_id}")
 def get_sensor_data(helmet_id: int, db: Session = Depends(get_db)):
-    """
-    Retrieve all sensor data entries for a specific helmet.
-    """
     return SensorService(db).get_by_helmet(helmet_id)

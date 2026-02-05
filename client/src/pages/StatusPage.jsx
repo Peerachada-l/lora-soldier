@@ -18,7 +18,6 @@ const StatusPage = ({ onAddSoldier }) => {
     const units = ['All Units', 'Alpha', 'Bravo', 'Charlie'];
     const ranks = ['All Ranks', 'Captain', 'Sergeant', 'Corporal', 'Private'];
 
-    /** ✅ Fetch all soldiers with helmet + sensor + location */
     const fetchAllData = async () => {
         try {
             const res = await fetch(`${API_BASE}/soldiers/`);
@@ -64,12 +63,10 @@ const StatusPage = ({ onAddSoldier }) => {
         }
     };
 
-    /** 🔄 Initial data fetch */
     useEffect(() => {
         fetchAllData();
     }, []);
 
-    /** 🌐 WebSocket for real-time updates */
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8000/ws/locations');
 
@@ -81,7 +78,6 @@ const StatusPage = ({ onAddSoldier }) => {
             try {
                 const data = JSON.parse(event.data);
 
-                // ✅ Handle JSON-structured messages
                 if (data.type === 'soldier_added' || data.type === 'soldier_updated' || data.type === 'soldier_removed') {
                     console.log('🔄 Refreshing soldiers due to soldier change...');
                     fetchAllData();
@@ -89,12 +85,10 @@ const StatusPage = ({ onAddSoldier }) => {
                 else if (data.type === 'sensor_update' && data.helmet_id) {
                     console.log(`⚡ Sensor update for helmet ${data.helmet_id}`);
 
-                    // Fetch only updated sensor data
                     const res = await fetch(`${API_BASE}/sensors/${data.helmet_id}`);
                     const sensorData = await res.json();
                     const latest = sensorData[sensorData.length - 1] || null;
 
-                    // Update affected soldier locally
                     setSoldiers((prev) =>
                         prev.map((s) =>
                             s.helmet?.helmet_id === data.helmet_id
@@ -104,7 +98,6 @@ const StatusPage = ({ onAddSoldier }) => {
                     );
                 }
             } catch {
-                // ✅ Fallback: handle plain text WebSocket messages
                 if (
                     event.data.includes('Soldier added') ||
                     event.data.includes('updated') ||
@@ -122,7 +115,6 @@ const StatusPage = ({ onAddSoldier }) => {
         return () => socket.close();
     }, []);
 
-    /** ➕ Create Soldier */
     const handleCreateSoldier = async (newSoldier) => {
         try {
             const res = await fetch(`${API_BASE}/soldiers/`, {
@@ -140,7 +132,6 @@ const StatusPage = ({ onAddSoldier }) => {
         }
     };
 
-    /** ✏️ Edit Soldier */
     const handleEditSoldier = async (soldierId, updatedData) => {
         try {
             const res = await fetch(`${API_BASE}/soldiers/${soldierId}`, {
@@ -160,7 +151,6 @@ const StatusPage = ({ onAddSoldier }) => {
         }
     };
 
-    /** ❌ Remove Soldier */
     const handleRemoveSoldier = async (soldierId) => {
         try {
             const res = await fetch(`${API_BASE}/soldiers/${soldierId}`, { method: 'DELETE' });
@@ -173,7 +163,6 @@ const StatusPage = ({ onAddSoldier }) => {
         }
     };
 
-    /** 🔍 Filter soldiers list */
     const filteredSoldiers = useMemo(() => {
         let list = [...soldiers];
         if (unitFilter !== 'All Units') list = list.filter((s) => s.unit === unitFilter);
@@ -198,12 +187,11 @@ const StatusPage = ({ onAddSoldier }) => {
 
     return (
         <main className="flex-1 overflow-auto p-4 md:p-8">
-            {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
                 <h1 className="text-3xl font-extrabold text-white">Unit Status Overview</h1>
 
                 <div className="flex flex-col md:flex-row md:items-center gap-3 relative">
-                    {/* Search */}
+             
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
                         <input
@@ -215,7 +203,6 @@ const StatusPage = ({ onAddSoldier }) => {
                         />
                     </div>
 
-                    {/* Unit Filter */}
                     <div className="relative">
                         <button
                             onClick={() => setOpenDropdown(openDropdown === 'unit' ? null : 'unit')}
@@ -246,7 +233,7 @@ const StatusPage = ({ onAddSoldier }) => {
                         )}
                     </div>
 
-                    {/* Rank Filter */}
+                  
                     <div className="relative">
                         <button
                             onClick={() => setOpenDropdown(openDropdown === 'rank' ? null : 'rank')}
@@ -277,7 +264,7 @@ const StatusPage = ({ onAddSoldier }) => {
                         )}
                     </div>
 
-                    {/* Add Soldier */}
+                
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
@@ -288,7 +275,6 @@ const StatusPage = ({ onAddSoldier }) => {
                 </div>
             </header>
 
-            {/* Soldier Cards */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
                 {filteredSoldiers.length > 0 ? (
                     filteredSoldiers.map((s) => (
@@ -305,7 +291,7 @@ const StatusPage = ({ onAddSoldier }) => {
                 )}
             </div>
 
-            {/* Modals */}
+  
             {showCreateModal && (
                 <CreateSoldierModal
                     onClose={() => setShowCreateModal(false)}

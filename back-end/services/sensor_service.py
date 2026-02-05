@@ -9,7 +9,6 @@ class SensorService:
         self.db = db
 
     async def add_sensor_data(self, helmet_id: int, heart_rate: int, body_temp: float, fall_detected: bool):
-        """Insert new sensor data record."""
         db_sensor_data = SensorData(
             helmet_id=helmet_id,
             heart_rate=heart_rate,

@@ -8,7 +8,6 @@ router = APIRouter(prefix="/soldiers", tags=["Soldiers"])
 
 @router.post("/", response_model=SoldierSchema)
 async def create_soldier(soldier: SoldierCreate, db: Session = Depends(get_db)):
-    """Create a new soldier (via service layer)."""
     service = SoldierService(db)
     return await service.create_soldier(
         name=soldier.name, rank=soldier.rank, unit=soldier.unit
@@ -17,7 +16,6 @@ async def create_soldier(soldier: SoldierCreate, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=list[SoldierSchema])
 def get_soldiers(db: Session = Depends(get_db)):
-    """Get all soldiers (via service layer)."""
     service = SoldierService(db)
     return service.get_all_soldiers()
 
@@ -28,22 +26,14 @@ def get_soldiers_with_details(db: Session = Depends(get_db)):
 
 @router.get("/{soldier_id}", response_model=SoldierSchema)
 def get_soldier(soldier_id: int, db: Session = Depends(get_db)):
-    """Get specific soldier info."""
     service = SoldierService(db)
     return service.get_soldier_by_id(soldier_id)
 
 
 @router.get("/{soldier_id}/helmet")
 def get_soldier_helmet(soldier_id: int, db: Session = Depends(get_db)):
-    """Get the helmet assigned to a soldier."""
     service = SoldierService(db)
     return service.get_soldier_helmet(soldier_id)
-
-# @router.get("/detailed")
-# def get_soldiers_with_details(db: Session = Depends(get_db)):
-#     """Get all soldiers with helmet + latest sensor/location data."""
-#     service = SoldierService(db)
-#     return service.get_all_soldiers_with_details()
 
 @router.put("/{soldier_id}")
 async def edit_soldier(
@@ -53,13 +43,11 @@ async def edit_soldier(
     unit: str = Body(None),
     db: Session = Depends(get_db)
 ):
-    """Edit soldier details."""
     service = SoldierService(db)
     return await service.edit_soldier(soldier_id, name, rank, unit)
 
 
 @router.delete("/{soldier_id}")
 async def remove_soldier(soldier_id: int, db: Session = Depends(get_db)):
-    """Delete soldier by ID."""
     service = SoldierService(db)
     return await service.remove_soldier(soldier_id)

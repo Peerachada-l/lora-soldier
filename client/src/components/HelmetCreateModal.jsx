@@ -2,7 +2,6 @@ import React from 'react';
 
 const HelmetCreateModal = ({ onClose, onAdd }) => {
     const handleConfirm = () => {
-        // Default status is "active" and soldier is unassigned
         onAdd({ status: 'active', soldier_id: null });
         onClose();
     };

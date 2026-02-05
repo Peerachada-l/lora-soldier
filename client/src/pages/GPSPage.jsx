@@ -19,13 +19,12 @@ const GPSPage = ({ soldiers: initialSoldiers, onSelectSoldier }) => {
 
     // WebSocket connection
     useEffect(() => {
-        const ws = new WebSocket('ws://localhost:8000/ws/locations'); // adjust path to your backend WS
+        const ws = new WebSocket('ws://localhost:8000/ws/locations'); 
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             const helmetId = data.helmet_id;
 
-            // Update or insert soldier
             setSoldiers((prev) => {
                 const exists = prev.find((s) => s.soldier_id === helmetId);
                 if (exists) {

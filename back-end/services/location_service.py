@@ -10,7 +10,6 @@ class LocationService:
         self.db = db
 
     async def add_location(self, helmet_id: int, latitude: float, longitude: float):
-        """Insert new GPS coordinate and broadcast via WebSocket."""
         db_location = LocationData(
             helmet_id=helmet_id,
             latitude=latitude,
@@ -22,7 +21,6 @@ class LocationService:
         self.db.commit()
         self.db.refresh(db_location)
 
-        # Broadcast JSON instead of plain string
         payload = {
             "helmet_id": helmet_id,
             "latitude": latitude,

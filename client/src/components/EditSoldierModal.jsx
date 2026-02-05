@@ -32,7 +32,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
 
             alert(`✅ Soldier #${soldier.soldier_id} updated successfully`);
             onClose();
-            onReload?.(); // refresh soldier list
+            onReload?.(); // refresh 
         } catch (err) {
             console.error('❌ Error updating soldier:', err);
             alert('Error updating soldier.');
@@ -54,7 +54,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
 
             alert(`🗑️ Soldier #${soldier.soldier_id} removed successfully`);
             onClose();
-            onReload?.(); // refresh soldier list
+            onReload?.(); // refresh 
         } catch (err) {
             console.error('❌ Error removing soldier:', err);
             alert('Error removing soldier.');

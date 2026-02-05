@@ -11,13 +11,12 @@ class SoldierService:
         self.db = db
 
     async def create_soldier(self, name: str, rank: str, unit: str):
-        """Create a new soldier record."""
         db_soldier = Soldier(name=name, rank=rank, unit=unit)
         self.db.add(db_soldier)
         self.db.commit()
         self.db.refresh(db_soldier)
 
-        # Broadcast WebSocket event
+        # Broadcast WebSocket event for logging
         await manager.broadcast(
             f"🪖 Soldier added: name={name} | rank={rank} | unit={unit}"
         )
@@ -25,11 +24,9 @@ class SoldierService:
         return db_soldier
 
     def get_all_soldiers(self):
-        """Return all soldiers."""
         return self.db.query(Soldier).all()
 
     def get_soldier_by_id(self, soldier_id: int):
-        """Return a single soldier by ID."""
         soldier = (
             self.db.query(Soldier)
             .filter(Soldier.soldier_id == soldier_id)
@@ -40,7 +37,6 @@ class SoldierService:
         return soldier
 
     def get_soldier_helmet(self, soldier_id: int):
-        """Return helmet assigned to soldier."""
         soldier = (
             self.db.query(Soldier)
             .filter(Soldier.soldier_id == soldier_id)
@@ -55,7 +51,6 @@ class SoldierService:
         return soldier.helmet
     
     def get_all_soldiers_with_details(self):
-        """Return all soldiers with their assigned helmet, latest sensor + location data."""
         soldiers = self.db.query(Soldier).all()
         result = []
 
@@ -110,7 +105,6 @@ class SoldierService:
         return result
 
     async def edit_soldier(self, soldier_id: int, name: str = None, rank: str = None, unit: str = None):
-        """Edit soldier information."""
         soldier = self.db.query(Soldier).filter(Soldier.soldier_id == soldier_id).first()
         if not soldier:
             raise HTTPException(status_code=404, detail="Soldier not found")
@@ -131,7 +125,6 @@ class SoldierService:
 
 
     async def remove_soldier(self, soldier_id: int):
-        """Remove a soldier record."""
         soldier = self.db.query(Soldier).filter(Soldier.soldier_id == soldier_id).first()
         if not soldier:
             raise HTTPException(status_code=404, detail="Soldier not found")
@@ -139,5 +132,6 @@ class SoldierService:
         self.db.delete(soldier)
         self.db.commit()
 
+        # just broadcast for logging
         await manager.broadcast(f"❌ Soldier {soldier_id} removed from database.")
         return {"message": f"Soldier {soldier_id} deleted successfully"}

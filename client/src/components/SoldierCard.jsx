@@ -1,10 +1,7 @@
 import React from 'react';
 import { MoreVertical, Heart, Thermometer, Shield, Activity, MapPin, AlertTriangle } from 'lucide-react';
 
-/**
- * SoldierCard Component
- * Displays soldier vitals, unit, and helmet status.
- */
+
 const SoldierCard = ({ soldier, onEdit }) => {
     const {
         soldier_id,
@@ -16,7 +13,7 @@ const SoldierCard = ({ soldier, onEdit }) => {
         location,
     } = soldier;
 
-    // Safe optional chaining
+
     const helmetId = helmet?.helmet_id ?? 'N/A';
     const status = helmet?.status ?? 'UNKNOWN';
     const heart_rate = sensor?.heart_rate ?? 0;
@@ -25,7 +22,7 @@ const SoldierCard = ({ soldier, onEdit }) => {
     // const latitude = location?.latitude ?? null;
     // const longitude = location?.longitude ?? null;
 
-    // Border color logic
+ 
     let borderColor;
     if (heart_rate === 0) borderColor = 'border-red-600 ring-red-600/30';
     else if (fall_detected) borderColor = 'border-yellow-400 ring-yellow-400/30';
@@ -35,7 +32,7 @@ const SoldierCard = ({ soldier, onEdit }) => {
         <div
             className={`relative p-4 md:p-6 bg-slate-900/70 border-2 rounded-xl shadow-lg transition duration-300 hover:shadow-2xl hover:shadow-red-500/10 ${borderColor}`}
         >
-            {/* Edit button (top-right) */}
+
             <button
                 onClick={(e) => {
                     e.stopPropagation();

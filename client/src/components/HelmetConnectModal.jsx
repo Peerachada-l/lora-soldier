@@ -6,7 +6,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
     const [newStatus, setNewStatus] = useState(helmet.status || 'inactive');
     const API_BASE = 'http://localhost:8000';
 
-    // 🔹 Assign or Reassign helmet
+
     const handleAssign = () => {
         if (!soldierId) {
             alert('Please enter a Soldier ID to assign.');
@@ -27,7 +27,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
         onClose();
     };
 
-    // 🔹 Unassign helmet
+  
     const handleUnassign = () => {
         if (!helmet.assigned_soldier_id) {
             alert('This helmet is not assigned to any soldier.');
@@ -39,7 +39,6 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
         }
     };
 
-    // 🔹 Remove helmet
     const handleRemove = () => {
         if (window.confirm('Are you sure you want to delete this helmet?')) {
             onRemove(helmet.helmet_id);
@@ -47,7 +46,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
         }
     };
 
-    // 🔹 Change status
+
     const handleChangeStatus = async () => {
         try {
             if (!window.confirm(`Change helmet #${helmet.helmet_id} status to '${newStatus}'?`)) return;
@@ -73,7 +72,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
             <div className="bg-slate-800 p-6 rounded-2xl shadow-xl w-full max-w-md border border-slate-700 relative">
-                {/* Close Button */}
+        
                 <button
                     onClick={onClose}
                     className="absolute top-3 right-3 text-slate-400 hover:text-white"
@@ -94,7 +93,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
                         {isAssigned ? <>#{helmet.assigned_soldier_id}</> : 'None'}
                     </p>
 
-                    {/* 🔽 Status Dropdown */}
+                  
                     <div className="mt-4">
                         <label className="block text-sm mb-2">Change Helmet Status</label>
                         <select
@@ -114,7 +113,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
                         </button>
                     </div>
 
-                    {/* 🔢 Assign/Reassign Soldier */}
+              
                     <div className="mt-6">
                         <label className="block text-sm mb-2">Assign to Soldier ID</label>
                         <input
@@ -131,7 +130,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove }) => {
                     </div>
                 </div>
 
-                {/* 🔘 Action Buttons */}
+         
                 <div className="flex flex-wrap justify-between gap-3 mt-6">
                     <button
                         onClick={handleAssign}

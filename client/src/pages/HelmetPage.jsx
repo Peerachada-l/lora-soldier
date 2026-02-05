@@ -4,7 +4,7 @@ import HelmetConnectModal from '../components/HelmetConnectModal.jsx';
 import HelmetCreateModal from '../components/HelmetCreateModal.jsx';
 
 const API_BASE = 'http://localhost:8000';
-const WS_URL = 'ws://localhost:8000/ws'; // WebSocket endpoint
+const WS_URL = 'ws://localhost:8000/ws';
 
 const HelmetPage = ({ soldiers }) => {
     const [helmets, setHelmets] = useState([]);
@@ -14,7 +14,6 @@ const HelmetPage = ({ soldiers }) => {
     const [selectedHelmet, setSelectedHelmet] = useState(null);
     const wsRef = useRef(null);
 
-    // --- Fetch helmets ---
     const fetchHelmets = async () => {
         try {
             const res = await fetch(`${API_BASE}/helmets/`);
@@ -26,9 +25,8 @@ const HelmetPage = ({ soldiers }) => {
         }
     };
 
-    // --- WebSocket Setup ---
     useEffect(() => {
-        fetchHelmets(); // initial load
+        fetchHelmets(); 
         wsRef.current = new WebSocket(WS_URL);
 
         wsRef.current.onopen = () => console.log('📡 WebSocket connected (HelmetPage)');
@@ -38,7 +36,6 @@ const HelmetPage = ({ soldiers }) => {
         wsRef.current.onmessage = (event) => {
             console.log('📨 WebSocket message:', event.data);
 
-            // Reload helmets only if event mentions "helmet"
             const msg = event.data.toLowerCase();
             if (msg.includes('helmet')) {
                 console.log('🔁 Updating helmets (WebSocket event detected)');
@@ -49,7 +46,6 @@ const HelmetPage = ({ soldiers }) => {
         return () => wsRef.current?.close();
     }, []);
 
-    // --- Add Helmet ---
     const handleAddHelmet = async (newHelmet) => {
         try {
             const res = await fetch(`${API_BASE}/helmets/`, {
@@ -65,7 +61,6 @@ const HelmetPage = ({ soldiers }) => {
         }
     };
 
-    // --- Remove Helmet ---
     const handleRemoveHelmet = async (helmet_id) => {
         try {
             const res = await fetch(`${API_BASE}/helmets/${helmet_id}`, {
@@ -78,7 +73,6 @@ const HelmetPage = ({ soldiers }) => {
         }
     };
 
-    // --- Assign / Unassign / Reassign Helmet ---
     const handleConnectHelmet = async (helmet_id, soldier_id) => {
         try {
             let url;
@@ -120,7 +114,6 @@ const HelmetPage = ({ soldiers }) => {
         }
     };
 
-    // --- Filtered Helmets ---
     const filteredHelmets = useMemo(() => {
         let list = [...helmets];
         list.sort((a, b) => a.helmet_id - b.helmet_id);
@@ -134,12 +127,10 @@ const HelmetPage = ({ soldiers }) => {
 
     return (
         <main className="flex-1 overflow-auto p-4 md:p-8">
-            {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
                 <h1 className="text-3xl font-extrabold text-white">Helmet Management</h1>
 
                 <div className="flex gap-3">
-                    {/* Filter */}
                     <div className="relative">
                         <button
                             onClick={() => setOpenDropdown(!openDropdown)}
@@ -170,7 +161,6 @@ const HelmetPage = ({ soldiers }) => {
                         )}
                     </div>
 
-                    {/* Add Helmet */}
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md transition"
@@ -181,7 +171,6 @@ const HelmetPage = ({ soldiers }) => {
                 </div>
             </header>
 
-            {/* Helmet Table */}
             <div className="bg-slate-800/60 rounded-xl shadow-xl overflow-hidden border border-slate-700">
                 <table className="w-full text-left text-slate-300">
                     <thead className="bg-slate-900/70 text-slate-200 text-sm uppercase tracking-wide">
@@ -225,7 +214,6 @@ const HelmetPage = ({ soldiers }) => {
                 </table>
             </div>
 
-            {/* Modals */}
             {showCreateModal && (
                 <HelmetCreateModal
                     onClose={() => setShowCreateModal(false)}
