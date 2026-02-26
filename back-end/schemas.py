@@ -22,7 +22,7 @@ class Soldier(SoldierBase):
     
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class HelmetStatusEnum(str, Enum):
@@ -36,7 +36,7 @@ class Helmet(BaseModel):
     status: HelmetStatusEnum
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SensorDataCreate(BaseModel):
@@ -58,4 +58,4 @@ class SensorData(BaseModel):
     timestamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
