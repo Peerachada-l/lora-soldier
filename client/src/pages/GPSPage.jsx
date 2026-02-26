@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const API_BASE = 'http://localhost:8000';
@@ -8,6 +8,7 @@ const WS_URL = 'ws://localhost:8000/ws/locations';
 const GPSPage = () => {
     const [soldiers, setSoldiers] = useState([]);
     const [activeSoldier, setActiveSoldier] = useState(null);
+    const [mapCenter, setMapCenter] = useState([13.7563, 100.5018]);
 
     /* ===============================
        1️⃣ LOAD SOLDIER + HELMET DATA
@@ -87,13 +88,45 @@ const GPSPage = () => {
         return () => ws.close();
     }, []);
 
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            console.warn("Geolocation not supported");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setMapCenter([latitude, longitude]);
+                console.log("New center:", latitude, longitude);
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+            },
+            {
+                enableHighAccuracy: true,
+            }
+        );
+    }, []);
+
+    const RecenterMap = ({ center }) => {
+        const map = useMap();
+
+        useEffect(() => {
+            map.flyTo(center, map.getZoom());
+        }, [center, map]);
+
+        return null;
+    };
+
     return (
         <MapContainer
-            center={[13.7563, 100.5018]}
+            center={mapCenter}
             zoom={14}
             style={{ width: '100%', height: '90vh' }}
         >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <RecenterMap center = {mapCenter} />
 
             {soldiers.map(soldier => {
                 const {
