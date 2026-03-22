@@ -1,7 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
-from routers import soldier, helmet, sensors, websocket
+import models  # noqa: F401 — register all models before create_all
+from routers import soldier, helmet, sensors, websocket, auth
 from utils.websocket_manager import manager
 
 Base.metadata.create_all(bind=engine)
@@ -18,6 +19,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(auth.router)
 app.include_router(soldier.router)
 app.include_router(helmet.router)
 app.include_router(sensors.router)

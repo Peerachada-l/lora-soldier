@@ -53,3 +53,12 @@ class SensorData(Base):
     longitude = Column(Float)
 
     soldier = relationship("Soldier", back_populates="sensor_data")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, nullable=False, index=True)
+    # Stores bcrypt hash of the plain password (never store plaintext).
+    password_hash = Column("password", String(255), nullable=False)

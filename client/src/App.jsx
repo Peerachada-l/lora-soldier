@@ -33,11 +33,18 @@ const App = () => {
   const [soldiers, setSoldiers] = useState(initialSoldiers);
   const [filterSoldierId, setFilterSoldierId] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginKey, setLoginKey] = useState(0);
 
   const [helmets, setHelmets] = useState(initialHelmets);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setLoginKey((k) => k + 1);
+    setIsLoggedIn(false);
   };
 
 
@@ -103,12 +110,12 @@ const App = () => {
 
   // --- LOGIN PAGE ON/OFF ---
   if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
+    return <LoginPage key={loginKey} onLogin={handleLogin} />;
   }
 
   return (
     <div className="flex h-screen bg-gray-900 font-inter">
-      <Sidebar currentPage={currentPage} onNavigate={handleNavigate} onLogout={() => setIsLoggedIn(false)} />
+      <Sidebar currentPage={currentPage} onNavigate={handleNavigate} onLogout={handleLogout} />
       {renderPage()}
     </div>
   );

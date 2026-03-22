@@ -4,7 +4,7 @@ const API_BASE = 'http://localhost:8000';
 
 const LoginPage = ({ onLogin }) => {
     const [form, setForm] = useState({
-        email: '',
+        username: '',
         password: '',
     });
     const [loading, setLoading] = useState(false);
@@ -17,8 +17,8 @@ const LoginPage = ({ onLogin }) => {
     const handleLogin = async (e) => {
         e.preventDefault();
 
-        if (!form.email || !form.password) {
-            setError('Please enter email and password');
+        if (!form.username || !form.password) {
+            setError('Please enter username and password');
             return;
         }
 
@@ -60,18 +60,18 @@ const LoginPage = ({ onLogin }) => {
                 </h1>
 
                 <form onSubmit={handleLogin} className="space-y-4">
-                    {/* Email */}
                     <div>
                         <label className="block text-slate-300 text-sm mb-1">
-                            Email
+                            Username
                         </label>
                         <input
-                            type="email"
-                            name="email"
-                            value={form.email}
+                            type="text"
+                            name="username"
+                            value={form.username}
                             onChange={handleChange}
                             className="w-full p-2 rounded-lg bg-slate-800 text-white border border-slate-700 focus:ring focus:ring-blue-500"
-                            placeholder="you@example.com"
+                            placeholder="Enter your username"
+                            autoComplete="username"
                         />
                     </div>
 
@@ -87,6 +87,7 @@ const LoginPage = ({ onLogin }) => {
                             onChange={handleChange}
                             className="w-full p-2 rounded-lg bg-slate-800 text-white border border-slate-700 focus:ring focus:ring-blue-500"
                             placeholder="••••••••"
+                            autoComplete="current-password"
                         />
                     </div>
 
