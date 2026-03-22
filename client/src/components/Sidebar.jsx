@@ -4,14 +4,15 @@ import {
     Map,
     BatteryCharging,
     HardHat,
-    Users
+    Users,
+    LogOut
 } from 'lucide-react';
 
 /**
  * Sidebar Component
  * Displays navigation icons for Dashboard, GPS, Status, Helmet, and Soldier pages.
  */
-const Sidebar = ({ currentPage, onNavigate }) => {
+const Sidebar = ({ currentPage, onNavigate, onLogout }) => {
     const baseBtn = 'p-3 rounded-xl shadow-xl transition-all duration-200';
     const activeBtn = 'bg-red-600/70 text-white';
     const inactiveBtn =
@@ -66,6 +67,16 @@ const Sidebar = ({ currentPage, onNavigate }) => {
             >
                 <HardHat size={24} />
             </button>
+
+            {/* Logout */}
+            <button
+                className={`${baseBtn} ${inactiveBtn} mt-auto`}
+                onClick={onLogout}
+                aria-label="Logout"
+            >
+                <LogOut size={24} />
+            </button>
+            
         </aside>
     );
 };
