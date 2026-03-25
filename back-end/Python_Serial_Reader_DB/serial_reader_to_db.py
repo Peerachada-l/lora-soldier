@@ -63,15 +63,17 @@ while True:
         payload = {
             "heart_rate": heart_rate,
             "body_temp": body_temp,
-            "fall_detected": fall_detected
-        }
-        print(data)
-        requests.post(url+"/sensors/"+str(data['ID']), json=payload)
-        payload = {
+            "fall_detected": fall_detected,
             "latitude": data["Lat"],
             "longitude": data["Lng"]
         }
-        requests.post(url+"/locations/"+str(data['ID']), json=payload)
+        print(data)
+        requests.post(url+"/sensors/"+str(data['ID']), json=payload)
+        # payload = {
+        #     "latitude": data["Lat"],
+        #     "longitude": data["Lng"]
+        # }
+        #requests.post(url+"/locations/"+str(data['ID']), json=payload)
         #print(f"HelmetID:{type(data['HelmetID'])}, AvgBPM:{type(data['AvgBPM'])}, TemperatureC:{type(data['TemperatureC'])}")
         #sql = "INSERT INTO sensor_data (heart_rate, body_temp, helmet_id) VALUES (%s, %s, %s)"
         #cur.execute(sql, (data["AvgBPM"], data["TemperatureC"], data["HelmetID"]))
