@@ -69,3 +69,19 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class DeviceKeyProvisionRequest(BaseModel):
+    mac_address_b64: str = Field(..., min_length=1)
+    lora_key_b64: Optional[str] = None
+
+
+class DeviceKeyProvisionResponse(BaseModel):
+    mac_address_b64: str
+    lora_key_b64: str
+    generated_new_key: bool
+
+
+class DeviceKeyLookupResponse(BaseModel):
+    mac_address_b64: str
+    lora_key_b64: str

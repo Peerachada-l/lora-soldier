@@ -18,3 +18,15 @@ VALUES (
     '$2b$12$znNUyT..A8oMkF6wAm6Alev8xnnx83XwDjM4tMDIEp5QYC8m8Wvvu'
 )
 ON CONFLICT (username) DO NOTHING;
+
+-- devices key table --
+CREATE TABLE IF NOT EXISTS device_keys (
+    id SERIAL PRIMARY KEY,
+    mac_address BYTEA NOT NULL UNIQUE,
+    key_ciphertext BYTEA NOT NULL,
+    key_nonce BYTEA NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    CONSTRAINT ck_device_keys_mac_4_bytes CHECK (octet_length(mac_address) = 4),
+    CONSTRAINT ck_device_keys_nonce_12_bytes CHECK (octet_length(key_nonce) = 12)
+);
