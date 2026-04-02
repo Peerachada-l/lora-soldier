@@ -9,6 +9,7 @@ const GPSPage = () => {
     const [soldiers, setSoldiers] = useState([]);
     const [activeSoldier, setActiveSoldier] = useState(null);
     const [mapCenter, setMapCenter] = useState([13.7563, 100.5018]);
+    const [isLocationReady, setIsLocationReady] = useState(false);
 
     /* ===============================
        1️⃣ LOAD SOLDIER + HELMET DATA
@@ -98,6 +99,7 @@ const GPSPage = () => {
             (position) => {
                 const { latitude, longitude } = position.coords;
                 setMapCenter([latitude, longitude]);
+                setIsLocationReady(true);
                 console.log("New center:", latitude, longitude);
             },
             (error) => {
@@ -124,9 +126,21 @@ const GPSPage = () => {
             center={mapCenter}
             zoom={14}
             style={{ width: '100%', height: '90vh' }}
+            
         >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <RecenterMap center = {mapCenter} />
+            
+            {isLocationReady && (
+                <CircleMarker
+                        key= "0"
+                        center={mapCenter}
+                        radius={10}
+                        pathOptions= {{ color: "blue"}} 
+                        
+                />
+            )}
+            
 
             {soldiers.map(soldier => {
                 const {
