@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import HelmetPage from './pages/HelmetPage.jsx';
 import SoldierPage from './pages/SoldierPage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
 
 // --- MOCK DATA ---
 const initialSoldiers = [
@@ -31,8 +32,20 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState('dashboard'); // default page
   const [soldiers, setSoldiers] = useState(initialSoldiers);
   const [filterSoldierId, setFilterSoldierId] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginKey, setLoginKey] = useState(0);
 
   const [helmets, setHelmets] = useState(initialHelmets);
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setLoginKey((k) => k + 1);
+    setIsLoggedIn(false);
+  };
 
 
   const handleAddSoldier = (newSoldier) => {
@@ -95,9 +108,14 @@ const App = () => {
     }
   };
 
+  // --- LOGIN PAGE ON/OFF ---
+  if (!isLoggedIn) {
+    return <LoginPage key={loginKey} onLogin={handleLogin} />;
+  }
+
   return (
     <div className="flex h-screen bg-gray-900 font-inter">
-      <Sidebar currentPage={currentPage} onNavigate={handleNavigate} />
+      <Sidebar currentPage={currentPage} onNavigate={handleNavigate} onLogout={handleLogout} />
       {renderPage()}
     </div>
   );

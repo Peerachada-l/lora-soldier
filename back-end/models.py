@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, Integer, String, Float, Boolean,
-    DateTime, ForeignKey, Enum
+    DateTime, ForeignKey, Enum, LargeBinary, CheckConstraint
 )
 from sqlalchemy.orm import relationship
 from database import Base
@@ -53,3 +53,27 @@ class SensorData(Base):
     longitude = Column(Float)
 
     soldier = relationship("Soldier", back_populates="sensor_data")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, nullable=False, index=True)
+    # Stores bcrypt hash of the plain password (never store plaintext).
+    password_hash = Column("password", String(255), nullable=False)
+
+
+class DeviceKey(Base):
+    __tablename__ = "device_keys"
+    __table_args__ = (
+        CheckConstraint("octet_length(mac_address) = 4", name="ck_device_keys_mac_4_bytes"),
+        CheckConstraint("octet_length(key_nonce) = 12", name="ck_device_keys_nonce_12_bytes"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    mac_address = Column(LargeBinary(4), unique=True, nullable=False, index=True)
+    key_ciphertext = Column(LargeBinary, nullable=False)
+    key_nonce = Column(LargeBinary(12), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

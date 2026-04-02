@@ -1,5 +1,5 @@
 # schemas.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from enum import Enum
@@ -58,4 +58,30 @@ class SensorData(BaseModel):
     timestamp: datetime
 
     class Config:
-        from_attributes = True
+        from_attribute = True
+
+
+class LoginRequest(BaseModel):
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class DeviceKeyProvisionRequest(BaseModel):
+    mac_address_b64: str = Field(..., min_length=1)
+    lora_key_b64: Optional[str] = None
+
+
+class DeviceKeyProvisionResponse(BaseModel):
+    mac_address_b64: str
+    lora_key_b64: str
+    generated_new_key: bool
+
+
+class DeviceKeyLookupResponse(BaseModel):
+    mac_address_b64: str
+    lora_key_b64: str
