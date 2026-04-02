@@ -6,6 +6,7 @@ import json
 from dotenv import load_dotenv
 import requests
 import os
+import secrets
 
 load_dotenv()
 
@@ -17,7 +18,12 @@ for p in ports:
     port = p.device
     print(p.device)
 
-ser = serial.Serial('COM6', 115200, timeout=1)
+ser = serial.Serial('COM3', 115200, timeout=1)
+
+mock_keys_db = {}
+
+def generate_key():
+    return secrets.token_bytes(32)
 
 # conn = psycopg2.connect(
 #     host=os.getenv("POSTGRES_HOST"),
@@ -45,6 +51,8 @@ while True:
     json_str = line[start:end+1]
     try:
         data = json.loads(json_str)
+        # if data["MAC"] not in mock_keys_db:
+        #     mock_keys_db[data["MAC"]] = generate_key()
         ir = data["IR"]
         heart_rate = data["AvgBPM"]
         body_temp = data["TempC"]
