@@ -1,23 +1,19 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Filter, Plus, Trash2 } from 'lucide-react';
+import { Filter, Plus, Trash2, Search } from 'lucide-react';
 import HelmetCreateModal from '../components/HelmetCreateModal.jsx';
 
 const API_BASE = 'http://localhost:8000';
 const WS_URL = 'ws://localhost:8000/ws';
 
-// Temp mock data
-// const MOCK_HELMETS = [
-//     { helmet_id: 1, status: 'active' },
-//     { helmet_id: 2, status: 'inactive' },
-//     { helmet_id: 3, status: 'maintenance' },
-// ];
-
 const HelmetPage = () => {
     const [helmets, setHelmets] = useState([]);
-    const [statusFilter, setStatusFilter] = useState('All');
-    const [openDropdown, setOpenDropdown] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('All Status');
+    const [searchId, setSearchId] = useState('');
+    const [openDropdown, setOpenDropdown] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const wsRef = useRef(null);
+
+    const statuses = ['All Status', 'active', 'inactive', 'maintenance'];
 
     // ---------------- FETCH ----------------
     const fetchHelmets = async () => {
@@ -32,19 +28,19 @@ const HelmetPage = () => {
 
     // ---------------- ADD ----------------
     const handleAddHelmet = async () => {
-    try {
-        const res = await fetch(
-            `${API_BASE}/helmets?status=inactive`,
-            { method: 'POST' }
-        );
+        try {
+            const res = await fetch(
+                `${API_BASE}/helmets?status=inactive`,
+                { method: 'POST' }
+            );
 
-        if (!res.ok) throw new Error();
+            if (!res.ok) throw new Error();
 
-        fetchHelmets(); // refresh list
-    } catch {
-        alert('Failed to add helmet');
-    }
-};
+            fetchHelmets();
+        } catch {
+            alert('Failed to add helmet');
+        }
+    };
 
     // ---------------- DELETE ----------------
     const deleteHelmet = async (helmet_id) => {
@@ -73,17 +69,17 @@ const HelmetPage = () => {
         );
 
         try {
-            await fetch(`${API_BASE}/helmets/${helmet_id}/status?status=${status}`, {
-            method: 'PUT',
-        });
+            await fetch(
+                `${API_BASE}/helmets/${helmet_id}/status?status=${status}`,
+                { method: 'PUT' }
+            );
         } catch {
-            fetchHelmets(); // rollback
+            fetchHelmets();
         }
     };
 
     // ---------------- WEBSOCKET ----------------
     useEffect(() => {
-        // setHelmets(MOCK_HELMETS); // dev
         fetchHelmets();
 
         wsRef.current = new WebSocket(WS_URL);
@@ -100,80 +96,94 @@ const HelmetPage = () => {
     // ---------------- FILTER ----------------
     const filteredHelmets = useMemo(() => {
         let list = [...helmets].sort((a, b) => a.helmet_id - b.helmet_id);
-        if (statusFilter !== 'All') {
-            list = list.filter(
-                (h) => h.status === statusFilter.toLowerCase()
+
+        if (statusFilter !== 'All Status') {
+            list = list.filter((h) => h.status === statusFilter);
+        }
+
+        if (searchId.trim()) {
+            list = list.filter((h) =>
+                h.helmet_id.toString().includes(searchId.trim())
             );
         }
-        return list;
-    }, [helmets, statusFilter]);
 
-    const statuses = ['All', 'active', 'inactive', 'maintenance'];
+        return list;
+    }, [helmets, statusFilter, searchId]);
+
+    // 🎨 Accent color like StatusPage
+    const accentColor =
+        statusFilter !== 'All Status'
+            ? 'text-blue-400 border-blue-500'
+            : 'text-slate-300 border-slate-600';
 
     return (
         <main className="flex-1 p-6">
             {/* HEADER */}
-            <header className="flex justify-between mb-6">
+            <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                 <h1 className="text-3xl font-bold text-white">
                     Helmet Management
                 </h1>
 
-                <div className="flex items-center gap-3">
-                    {/* FILTER */}
+                <div className="flex flex-wrap gap-3 relative">
+                    {/* 🔍 SEARCH */}
+                    <div className="relative">
+                        <Search
+                            size={18}
+                            className="absolute left-3 top-2.5 text-slate-400"
+                        />
+                        <input
+                            value={searchId}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (/^\d*$/.test(val)) setSearchId(val);
+                            }}
+                            placeholder="Search helmet ID..."
+                            className="bg-slate-800 text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-slate-700 w-56"
+                        />
+                    </div>
+
+                    {/* 🎛 STATUS FILTER */}
                     <div className="relative">
                         <button
-                            onClick={() => setOpenDropdown(!openDropdown)}
-                            className="flex items-center gap-2 h-10 px-4 rounded-lg
-                       border border-slate-600
-                       bg-slate-800 text-slate-200
-                       hover:bg-slate-700
-                       transition"
+                            onClick={() =>
+                                setOpenDropdown(openDropdown === 'status' ? null : 'status')
+                            }
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${accentColor}`}
                         >
-                            <Filter size={16} className="text-slate-400" />
-                            <span className="capitalize text-sm">
-                                {statusFilter}
-                            </span>
+                            <Filter size={18} />
+                            <span className="capitalize">{statusFilter}</span>
                         </button>
 
-                        {openDropdown && (
-                            <div className="absolute right-0 mt-2 w-40
-                            bg-slate-800 border border-slate-700
-                            rounded-lg shadow-xl z-20 overflow-hidden">
+                        {openDropdown === 'status' && (
+                            <div className="absolute right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg w-40 z-20">
                                 {statuses.map((s) => (
-                                    <button
+                                    <div
                                         key={s}
                                         onClick={() => {
                                             setStatusFilter(s);
-                                            setOpenDropdown(false);
+                                            setOpenDropdown(null);
                                         }}
-                                        className={`w-full text-left px-4 py-2 text-sm capitalize
-                            hover:bg-slate-700 transition
-                            ${statusFilter === s
-                                                ? 'bg-slate-700 text-white'
+                                        className={`px-4 py-2 cursor-pointer hover:bg-slate-700 ${statusFilter === s
+                                                ? 'bg-slate-700 text-blue-400 font-semibold'
                                                 : 'text-slate-300'
                                             }`}
                                     >
                                         {s}
-                                    </button>
+                                    </div>
                                 ))}
                             </div>
                         )}
                     </div>
 
-                    {/* ADD HELMET */}
+                    {/* ➕ ADD */}
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 h-10 px-5 rounded-lg
-                   bg-blue-600 hover:bg-blue-700
-                   text-white font-medium
-                   shadow-md shadow-blue-600/30
-                   transition"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
                     >
-                        <Plus size={16} />
-                        <span className="text-sm">Add Helmet</span>
+                        <Plus size={18} />
+                        Add Helmet
                     </button>
                 </div>
-
             </header>
 
             {/* TABLE */}
@@ -189,16 +199,13 @@ const HelmetPage = () => {
 
                     <tbody>
                         {filteredHelmets.map((h) => (
-                            <tr
-                                key={h.helmet_id}
-                                className="border-t border-slate-700"
-                            >
-                                <td className="px-6 py-4 text-center align-middle font-semibold">
+                            <tr key={h.helmet_id} className="border-t border-slate-700">
+                                <td className="px-6 py-4 text-center font-semibold">
                                     #{h.helmet_id}
                                 </td>
 
                                 <td className="px-6 py-4">
-                                    <div className="flex justify-center items-center gap-6">
+                                    <div className="flex justify-center gap-6">
                                         {['active', 'inactive', 'maintenance'].map((s) => (
                                             <label
                                                 key={s}
@@ -217,16 +224,14 @@ const HelmetPage = () => {
                                     </div>
                                 </td>
 
-
-                                <td className="px-6 py-4 text-center align-middle">
+                                <td className="px-6 py-4 text-center">
                                     <button
                                         onClick={() => deleteHelmet(h.helmet_id)}
-                                        className="inline-flex items-center justify-center text-red-400 hover:text-red-600 transition"
+                                        className="text-red-400 hover:text-red-600 transition"
                                     >
                                         <Trash2 size={18} />
                                     </button>
                                 </td>
-
                             </tr>
                         ))}
                     </tbody>

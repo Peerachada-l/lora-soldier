@@ -109,9 +109,9 @@ const App = () => {
   };
 
   // --- LOGIN PAGE ON/OFF ---
-  if (!isLoggedIn) {
-    return <LoginPage key={loginKey} onLogin={handleLogin} />;
-  }
+  // if (!isLoggedIn) {
+  //   return <LoginPage key={loginKey} onLogin={handleLogin} />;
+  // }
 
   return (
     <div className="flex h-screen bg-gray-900 font-inter">
