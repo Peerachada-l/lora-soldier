@@ -8,10 +8,6 @@ import {
     LogOut
 } from 'lucide-react';
 
-/**
- * Sidebar Component
- * Displays navigation icons for Dashboard, GPS, Status, Helmet, and Soldier pages.
- */
 const Sidebar = ({ currentPage, onNavigate, onLogout }) => {
     const baseBtn = 'p-3 rounded-xl shadow-xl transition-all duration-200';
     const activeBtn = 'bg-red-600/70 text-white';
@@ -20,7 +16,7 @@ const Sidebar = ({ currentPage, onNavigate, onLogout }) => {
 
     return (
         <aside className="w-16 flex flex-col items-center py-6 space-y-8 bg-gray-950/50 shadow-2xl border-r border-slate-700/50">
-            {/* Logo Placeholder */}
+            {/* Logo */}
             <div className="w-8 h-8 rounded-lg bg-red-600/70"></div>
 
             {/* Dashboard */}

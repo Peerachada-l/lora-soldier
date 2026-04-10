@@ -38,10 +38,9 @@ const LoginPage = ({ onLogin }) => {
 
             const data = await res.json();
 
-            // Save token (optional)
+            // Save token
             localStorage.setItem('token', data.access_token);
 
-            // Notify parent (App.jsx)
             onLogin?.(data);
 
         } catch (err) {

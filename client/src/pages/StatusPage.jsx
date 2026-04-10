@@ -14,7 +14,6 @@ const StatusPage = () => {
     const units = ['All Units', 'Alpha', 'Bravo', 'Charlie'];
     const ranks = ['All Ranks', 'Captain', 'Sergeant', 'Corporal', 'Private'];
 
-    /* 🔄 FETCH ONCE — BACKEND ALREADY RETURNS LATEST SENSOR */
     const fetchAllData = async () => {
         try {
             const res = await fetch(`${API_BASE}/soldiers/detailed`);
@@ -29,12 +28,11 @@ const StatusPage = () => {
         }
     };
 
-    /* INITIAL LOAD */
     useEffect(() => {
         fetchAllData();
     }, []);
 
-    /* 🌐 WEBSOCKET — REFRESH WHEN SENSOR UPDATES */
+    // websocket
     useEffect(() => {
         const ws = new WebSocket('ws://localhost:8000/ws/locations');
 
@@ -45,7 +43,6 @@ const StatusPage = () => {
         return () => ws.close();
     }, []);
 
-    /* 🔍 FILTERING */
     const filteredSoldiers = useMemo(() => {
         let list = [...soldiers];
 

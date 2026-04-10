@@ -26,7 +26,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
         setLoading(true);
 
         try {
-            // 1️⃣ Update basic soldier info
+            // update basic soldier info
             const res = await fetch(`${API_BASE}/soldiers/${soldier.soldier_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -39,9 +39,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
 
             if (!res.ok) throw new Error('Failed to update soldier');
 
-            // 2️⃣ Helmet logic
             if (form.helmet_id !== '') {
-                // 🪖 Wear helmet
                 const wearRes = await fetch(
                     `${API_BASE}/soldiers/${soldier.soldier_id}/wear/${Number(form.helmet_id)}`,
                     { method: 'PUT' }
@@ -52,7 +50,7 @@ const EditSoldierModal = ({ soldier, onClose, onReload }) => {
                     throw new Error(err.detail || 'Helmet assignment failed');
                 }
             } else {
-                // ❌ Remove helmet
+                // remove helmet
                 await fetch(
                     `${API_BASE}/soldiers/${soldier.soldier_id}/remove-helmet`,
                     { method: 'PUT' }

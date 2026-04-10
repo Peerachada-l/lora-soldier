@@ -55,7 +55,6 @@ const SoldierPage = () => {
         setSelectedSoldier(null);
     };
 
-    // 🔍 FILTERING (same logic as StatusPage)
     const filteredSoldiers = useMemo(() => {
         let list = [...soldiers];
 
@@ -79,7 +78,6 @@ const SoldierPage = () => {
         return list;
     }, [soldiers, search, unitFilter, rankFilter]);
 
-    // 🎨 Dynamic accent color (same behavior)
     const accentColor =
         unitFilter !== 'All Units'
             ? 'text-green-400 border-green-500'
@@ -96,7 +94,7 @@ const SoldierPage = () => {
                 </h1>
 
                 <div className="flex flex-wrap gap-3 relative">
-                    {/* 🔍 SEARCH */}
+                    {/* SEARCH */}
                     <div className="relative">
                         <Search
                             size={18}
@@ -110,7 +108,7 @@ const SoldierPage = () => {
                         />
                     </div>
 
-                    {/* 🪖 UNIT FILTER */}
+                    {/* UNIT FILTER */}
                     <div className="relative">
                         <button
                             onClick={() =>
@@ -143,7 +141,7 @@ const SoldierPage = () => {
                         )}
                     </div>
 
-                    {/* 🎖 RANK FILTER */}
+                    {/* RANK FILTER */}
                     <div className="relative">
                         <button
                             onClick={() =>
@@ -176,7 +174,7 @@ const SoldierPage = () => {
                         )}
                     </div>
 
-                    {/* ➕ ADD */}
+                    {/* ADD */}
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg"

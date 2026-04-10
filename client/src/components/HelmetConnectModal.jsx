@@ -9,7 +9,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove, onStatusChan
 
     if (!helmet) return null;
 
-    // 🟢 Assign / Reassign
+    // Assign / Reassign
     const handleAssign = () => {
         if (!soldierId) {
             alert('Please enter Soldier ID');
@@ -19,21 +19,21 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove, onStatusChan
         onClose();
     };
 
-    // 🟡 Unassign
+    // Unassign
     const handleUnassign = () => {
         if (!helmet.assigned_soldier_id) return;
         onConnect(helmet.helmet_id, null);
         onClose();
     };
 
-    // 🔴 Delete
+    // Delete
     const handleRemove = () => {
         if (!window.confirm('Delete this helmet?')) return;
         onRemove(helmet.helmet_id);
         onClose();
     };
 
-    // 🔵 Change Status
+    // Change Status
     const handleChangeStatus = async () => {
         try {
             const res = await fetch(
@@ -53,7 +53,7 @@ const HelmetConnectModal = ({ helmet, onClose, onConnect, onRemove, onStatusChan
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
             <div className="bg-slate-800 p-6 rounded-2xl w-full max-w-md border border-slate-700 relative">
-                {/* ❌ Close */}
+                {/* Close */}
                 <button
                     onClick={onClose}
                     className="absolute top-3 right-3 text-slate-400 hover:text-white"

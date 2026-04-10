@@ -11,9 +11,6 @@ const GPSPage = () => {
     const [mapCenter, setMapCenter] = useState([13.7563, 100.5018]);
     const [isLocationReady, setIsLocationReady] = useState(false);
 
-    /* ===============================
-       1️⃣ LOAD SOLDIER + HELMET DATA
-       =============================== */
     useEffect(() => {
         const fetchSoldiers = async () => {
             try {
@@ -45,9 +42,6 @@ const GPSPage = () => {
         fetchSoldiers();
     }, []);
 
-    /* ===============================
-       2️⃣ REAL-TIME LOCATION UPDATES
-       =============================== */
     useEffect(() => {
         const ws = new WebSocket(WS_URL);
 
@@ -153,7 +147,7 @@ const GPSPage = () => {
                     helmet_status,
                 } = soldier;
 
-                /* ❌ FILTER: helmet rules */
+                /*filter */
                 if (!helmet_worn) return null;
                 if (helmet_status !== 'active') return null;
 

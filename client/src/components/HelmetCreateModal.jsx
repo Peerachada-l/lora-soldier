@@ -2,7 +2,7 @@ import React from 'react';
 
 const HelmetCreateModal = ({ onClose, onAdd }) => {
     const handleConfirm = () => {
-        onAdd();   // backend already defaults to inactive
+        onAdd();   
         onClose();
     };
 

@@ -7,7 +7,7 @@ import HelmetPage from './pages/HelmetPage.jsx';
 import SoldierPage from './pages/SoldierPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 
-// --- MOCK DATA ---
+// MOCK DATA 
 const initialSoldiers = [
   { soldier_id: 1, name: 'Hawk Eye', rank: 'Sergeant', unit: 'Alpha' },
   { soldier_id: 2, name: 'Rattler', rank: 'Corporal', unit: 'Alpha' },
@@ -25,9 +25,7 @@ const initialHelmets = [
   { helmet_id: 105, status: 'unassigned', soldier_id: null },
 ];
 
-/**
- * Main App Component
- */
+
 const App = () => {
   const [currentPage, setCurrentPage] = useState('dashboard'); // default page
   const [soldiers, setSoldiers] = useState(initialSoldiers);
@@ -108,7 +106,7 @@ const App = () => {
     }
   };
 
-  // --- LOGIN PAGE ON/OFF ---
+  // Login page
   if (!isLoggedIn) {
     return <LoginPage key={loginKey} onLogin={handleLogin} />;
   }

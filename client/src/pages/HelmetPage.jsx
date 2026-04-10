@@ -15,7 +15,6 @@ const HelmetPage = () => {
 
     const statuses = ['All Status', 'active', 'inactive', 'maintenance'];
 
-    // ---------------- FETCH ----------------
     const fetchHelmets = async () => {
         try {
             const res = await fetch(`${API_BASE}/helmets/`);
@@ -26,7 +25,6 @@ const HelmetPage = () => {
         }
     };
 
-    // ---------------- ADD ----------------
     const handleAddHelmet = async () => {
         try {
             const res = await fetch(
@@ -42,7 +40,6 @@ const HelmetPage = () => {
         }
     };
 
-    // ---------------- DELETE ----------------
     const deleteHelmet = async (helmet_id) => {
         if (!window.confirm(`Delete helmet #${helmet_id}?`)) return;
 
@@ -60,7 +57,6 @@ const HelmetPage = () => {
         }
     };
 
-    // ---------------- STATUS UPDATE ----------------
     const handleStatusChange = async (helmet_id, status) => {
         setHelmets((prev) =>
             prev.map((h) =>
@@ -78,7 +74,6 @@ const HelmetPage = () => {
         }
     };
 
-    // ---------------- WEBSOCKET ----------------
     useEffect(() => {
         fetchHelmets();
 
@@ -93,7 +88,6 @@ const HelmetPage = () => {
         return () => wsRef.current?.close();
     }, []);
 
-    // ---------------- FILTER ----------------
     const filteredHelmets = useMemo(() => {
         let list = [...helmets].sort((a, b) => a.helmet_id - b.helmet_id);
 
@@ -110,7 +104,6 @@ const HelmetPage = () => {
         return list;
     }, [helmets, statusFilter, searchId]);
 
-    // 🎨 Accent color like StatusPage
     const accentColor =
         statusFilter !== 'All Status'
             ? 'text-blue-400 border-blue-500'
@@ -125,7 +118,7 @@ const HelmetPage = () => {
                 </h1>
 
                 <div className="flex flex-wrap gap-3 relative">
-                    {/* 🔍 SEARCH */}
+                    {/* SEARCH */}
                     <div className="relative">
                         <Search
                             size={18}
@@ -142,7 +135,7 @@ const HelmetPage = () => {
                         />
                     </div>
 
-                    {/* 🎛 STATUS FILTER */}
+                    {/* FILTER */}
                     <div className="relative">
                         <button
                             onClick={() =>
@@ -175,7 +168,7 @@ const HelmetPage = () => {
                         )}
                     </div>
 
-                    {/* ➕ ADD */}
+                    {/* ADD */}
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"

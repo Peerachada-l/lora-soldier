@@ -92,7 +92,7 @@ const SoldierCard = ({ soldier, onEdit }) => {
                 </span>
             </div>
 
-            {/* SENSOR DATA */}
+            {/* SENSOR */}
             {sensorAllowed ? (
                 <div className="grid grid-cols-1 gap-4 text-sm font-medium">
                     <div className="flex items-center space-x-2">
