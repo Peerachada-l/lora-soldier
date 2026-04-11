@@ -61,13 +61,17 @@ while True:
         accelZ = data["AccelZ"]
         accelMag = sqrt(accelX*accelX + accelY*accelY + accelZ*accelZ) #length of 3D vector
         print("accelMag: ", accelMag)
-        if accelMag > 10:
+        if accelMag > 16:
             fall_detected = True
         else:
             fall_detected = False
         if ir < 10000:
+            if heart_rate < 40:
+                heart_rate = 0
             heart_rate = 0
             body_temp = 0.0
+        print(f"ir:{ir}")
+        print(f"hr: {heart_rate}")
         payload = {
             "heart_rate": heart_rate,
             "body_temp": body_temp,
