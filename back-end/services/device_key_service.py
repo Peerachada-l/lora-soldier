@@ -56,7 +56,7 @@ class DeviceKeyService:
             raise HTTPException(status_code=500, detail="Failed to decrypt LoRa key") from exc
 
     def provision_device(self, mac_address: bytes, provided_lora_key: Optional[bytes]) -> tuple[bytes, bool]:
-        if len(mac_address) != 4:
+        if len(mac_address) != 6:
             raise HTTPException(status_code=400, detail="mac_address must be exactly 4 bytes")
 
         if provided_lora_key is None:
@@ -87,7 +87,7 @@ class DeviceKeyService:
         return lora_key, generated_new_key
 
     def get_key_by_mac(self, mac_address: bytes) -> bytes:
-        if len(mac_address) != 4:
+        if len(mac_address) != 6:
             raise HTTPException(status_code=400, detail="mac_address must be exactly 4 bytes")
 
         device = self.db.query(DeviceKey).filter(DeviceKey.mac_address == mac_address).first()
